@@ -42,7 +42,7 @@ export default function AnimatedCounter({
         {count}
         {suffix}
       </div>
-      <p className="mt-2 text-white/70 text-sm uppercase tracking-wide">
+      <p className="mt-2 text-black/60 text-sm uppercase tracking-wide">
         {label}
       </p>
     </motion.div>

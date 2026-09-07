@@ -63,14 +63,14 @@ const industries = [
 const fadeUp = {
   hidden: { opacity: 0, y: 60 },
   show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
-};
+} as const;
 
 const stagger = {
   hidden: {},
   show: {
     transition: { staggerChildren: 0.12 },
   },
-};
+} as const;
 
 export default function Home() {
   const heroRef = useRef(null);
@@ -94,10 +94,7 @@ export default function Home() {
           style={{ y: heroY, scale: heroScale }}
           className="absolute inset-0 bg-gradient-to-br from-red/20 via-black to-black"
         />
-        <motion.div
-          style={{ opacity: heroOpacity }}
-          className="relative"
-        >
+        <motion.div style={{ opacity: heroOpacity }} className="relative">
           <motion.h1
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}

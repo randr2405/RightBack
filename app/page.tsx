@@ -313,25 +313,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA - the one black moment */}
+      {/* CTA */}
       <motion.section
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.4 }}
         variants={fadeUp}
-        className="bg-black text-white text-center px-6 py-28"
+        className="bg-neutral-100 text-black text-center px-6 py-28"
       >
         <h2 className="text-3xl sm:text-5xl font-bold max-w-3xl mx-auto">
           Power Your Production with Smarter Technology
         </h2>
-        <p className="mt-6 max-w-2xl mx-auto text-white/70 text-lg">
+        <p className="mt-6 max-w-2xl mx-auto text-black/70 text-lg">
           Whether you&apos;re expanding capacity, improving efficiency, or
           investing in automation, Rightback has the technology, and the
           expertise, to support your growth.
         </p>
         <Link
           href="/contact"
-          className="inline-block mt-10 px-10 py-4 border border-red text-white rounded-full text-lg hover:bg-red hover:scale-105 transition-all duration-300"
+          className="inline-block mt-10 px-10 py-4 border border-red text-black rounded-full text-lg hover:bg-red hover:text-white hover:scale-105 transition-all duration-300"
         >
           Contact us
         </Link>

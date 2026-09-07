@@ -84,15 +84,15 @@ export default function Home() {
   const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden bg-cream">
+    <div className="flex flex-col flex-1 overflow-hidden bg-neutral-100">
       {/* Hero with parallax */}
       <section
         ref={heroRef}
-        className="relative bg-cream text-black text-center px-6 py-40 overflow-hidden"
+        className="relative bg-neutral-100 text-black text-center px-6 py-40 overflow-hidden"
       >
         <motion.div
           style={{ y: heroY, scale: heroScale }}
-          className="absolute inset-0 bg-gradient-to-br from-red/10 via-cream to-cream"
+          className="absolute inset-0 bg-gradient-to-br from-red/10 via-neutral-100 to-neutral-100"
         />
         <motion.div style={{ opacity: heroOpacity }} className="relative">
           <motion.h1
@@ -132,7 +132,7 @@ export default function Home() {
         whileInView="show"
         viewport={{ once: true, amount: 0.4 }}
         variants={fadeUp}
-        className="bg-cream text-black text-center px-6 pb-24"
+        className="bg-neutral-100 text-black text-center px-6 pb-24"
       >
         <p className="max-w-3xl mx-auto text-black/70 text-lg sm:text-xl">
           Rightback supplies world-class apparel manufacturing technology to
@@ -165,7 +165,7 @@ export default function Home() {
         whileInView="show"
         viewport={{ once: true, amount: 0.3 }}
         variants={fadeUp}
-        className="bg-cream text-center px-6 py-24"
+        className="bg-neutral-100 text-center px-6 py-24"
       >
         <h2 className="text-3xl sm:text-4xl font-bold text-black">
           Proven, production-ready machinery
@@ -182,7 +182,7 @@ export default function Home() {
       </motion.section>
 
       {/* What we do */}
-      <section className="bg-cream px-6 py-28">
+      <section className="bg-neutral-100 px-6 py-28">
         <motion.div
           initial="hidden"
           whileInView="show"
@@ -266,7 +266,7 @@ export default function Home() {
               key={item.title}
               variants={fadeUp}
               whileHover={{ y: -8 }}
-              className="bg-cream rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow duration-300 text-center"
+              className="bg-neutral-100 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow duration-300 text-center"
             >
               <h3 className="font-semibold text-black mb-3">{item.title}</h3>
               <p className="text-black/70 text-sm">{item.description}</p>
@@ -276,7 +276,7 @@ export default function Home() {
       </section>
 
       {/* Industries we serve */}
-      <section className="px-6 py-28 bg-cream overflow-hidden">
+      <section className="px-6 py-28 bg-neutral-100 overflow-hidden">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, x: -60 }}
@@ -319,7 +319,7 @@ export default function Home() {
         whileInView="show"
         viewport={{ once: true, amount: 0.4 }}
         variants={fadeUp}
-        className="bg-neutral-100 text-black text-center px-6 py-28"
+        className="bg-neutral-200 text-black text-center px-6 py-28"
       >
         <h2 className="text-3xl sm:text-5xl font-bold max-w-3xl mx-auto">
           Power Your Production with Smarter Technology

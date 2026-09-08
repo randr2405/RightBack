@@ -1,7 +1,7 @@
 ﻿"use client";
 
-import { motion } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
+import CategoryHero from "@/components/CategoryHero";
 
 const products = [
   {
@@ -91,41 +91,18 @@ const products = [
 export default function LaserMachinesPage() {
   return (
     <div className="bg-neutral-100 flex-1">
-      {/* Hero */}
-      <section className="relative bg-black text-white text-center px-6 py-32 overflow-hidden">
-        <motion.div
-          className="absolute -top-20 left-1/4 w-96 h-96 rounded-full bg-red/20 blur-3xl"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.span
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative inline-block text-red text-sm font-semibold uppercase tracking-widest mb-4"
-        >
-          Precision Finishing
-        </motion.span>
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="relative text-4xl sm:text-6xl lg:text-7xl font-bold"
-        >
-          Laser Machines
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="relative mt-6 max-w-2xl mx-auto text-white/70 text-lg"
-        >
-          Modern laser marking, finishing, and cutting technology for denim,
-          garments, and sublimation fabrics.
-        </motion.p>
-      </section>
+      <CategoryHero
+        eyebrow="Precision Finishing"
+        title="Laser Machines"
+        ghostWord="LASER"
+        description="Modern laser marking, finishing, and cutting technology for denim, garments, and sublimation fabrics."
+        stats={[
+          { value: "5", label: "Systems" },
+          { value: "2", label: "Global Brands" },
+          { value: "4x", label: "Productivity Gain" },
+        ]}
+      />
 
-      {/* Product list */}
       <section>
         {products.map((product, i) => (
           <ProductCard key={product.name} index={i + 1} {...product} />

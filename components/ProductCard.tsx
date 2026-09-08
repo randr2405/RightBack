@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, ImageIcon } from "lucide-react";
+import { useRef, useState } from "react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { ImageIcon, Plus } from "lucide-react";
 
 export type ProductCardProps = {
+  index: number;
   brand: string;
   name: string;
   tagline: string;
@@ -16,6 +17,7 @@ export type ProductCardProps = {
 };
 
 export default function ProductCard({
+  index,
   brand,
   name,
   tagline,
@@ -25,146 +27,182 @@ export default function ProductCard({
   imageSrc,
   reverse = false,
 }: ProductCardProps) {
-  const [activeTab, setActiveTab] = useState<"info" | "benefits">("info");
-  const hasTabs = !!(moreInfo?.length || benefits?.length);
+  const ref = useRef(null);
+  const [showInfo, setShowInfo] = useState(false);
+
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+
+  const imageY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
+  const numberX = useTransform(
+    scrollYProgress,
+    [0, 1],
+    reverse ? ["5%", "-5%"] : ["-5%", "5%"]
+  );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.7, ease: "easeOut" }}
-      className="bg-white rounded-3xl shadow-sm hover:shadow-xl border border-black/5 overflow-hidden transition-shadow duration-500"
+    <div
+      ref={ref}
+      className="relative py-20 sm:py-28 border-b border-black/10 last:border-b-0"
     >
+      {/* Giant background index number */}
+      <motion.div
+        style={{ x: numberX }}
+        className={`pointer-events-none select-none absolute top-0 ${
+          reverse ? "right-0 sm:-right-4" : "left-0 sm:-left-4"
+        } text-[8rem] sm:text-[14rem] font-black leading-none text-black/[0.04]`}
+      >
+        {String(index).padStart(2, "0")}
+      </motion.div>
+
       <div
-        className={`grid grid-cols-1 lg:grid-cols-2 gap-0 ${
+        className={`relative max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center px-6 ${
           reverse ? "lg:[direction:rtl]" : ""
         }`}
       >
-        {/* Image side */}
-        <div className="relative bg-neutral-100 flex items-center justify-center p-10 min-h-[320px] [direction:ltr]">
-          <motion.div
-            whileHover={{ scale: 1.05, rotate: reverse ? -1 : 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            className="relative w-full h-full flex items-center justify-center"
+        {/* Image */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="lg:col-span-5 [direction:ltr]"
+        >
+          <div className="relative aspect-[4/3] rounded-3xl bg-gradient-to-br from-white to-neutral-200 border border-black/5 shadow-xl overflow-hidden flex items-center justify-center">
+            <motion.div
+              style={{ y: imageY }}
+              className="absolute inset-0 flex items-center justify-center p-10"
+            >
+              {imageSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={imageSrc}
+                  alt={name}
+                  className="max-h-full max-w-full object-contain drop-shadow-2xl"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-black/25">
+                  <ImageIcon size={40} strokeWidth={1.2} />
+                  <span className="text-xs">Image coming soon</span>
+                </div>
+              )}
+            </motion.div>
+            <motion.div
+              className="absolute -bottom-6 -right-6 w-32 h-32 rounded-full bg-red/20 blur-2xl"
+              animate={{ scale: [1, 1.25, 1] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
+        </motion.div>
+
+        {/* Content */}
+        <div className="lg:col-span-7 [direction:ltr]">
+          <motion.span
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="inline-block text-red text-xs font-bold uppercase tracking-[0.2em] mb-3"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-red/10 via-transparent to-black/5 rounded-2xl" />
-            {imageSrc ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={imageSrc}
-                alt={name}
-                className="relative max-h-64 object-contain drop-shadow-xl"
-              />
-            ) : (
-              <div className="relative flex flex-col items-center gap-2 text-black/30">
-                <ImageIcon size={48} strokeWidth={1.2} />
-                <span className="text-xs">Image coming soon</span>
-              </div>
-            )}
-          </motion.div>
-        </div>
-
-        {/* Content side */}
-        <div className="p-8 sm:p-12 flex flex-col justify-center [direction:ltr]">
-          <span className="text-red text-xs font-semibold uppercase tracking-widest mb-2">
             {brand}
-          </span>
-          <h3 className="text-2xl sm:text-3xl font-bold text-black mb-4">
-            {name}
-          </h3>
-          <p className="text-black font-medium mb-4">{tagline}</p>
+          </motion.span>
 
-          <div className="space-y-3 text-black/70 text-sm leading-relaxed mb-6">
+          <motion.h3
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.05 }}
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-black leading-[1.1] mb-5"
+          >
+            {name}
+          </motion.h3>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-lg text-black/80 font-medium mb-4"
+          >
+            {tagline}
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="space-y-3 text-black/60 text-sm leading-relaxed mb-6 max-w-xl"
+          >
             {description.map((para, i) => (
               <p key={i}>{para}</p>
             ))}
-          </div>
+          </motion.div>
 
-          {hasTabs && (
+          {benefits?.length ? (
+            <motion.div
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={{ hidden: {}, show: { transition: { staggerChildren: 0.05 } } }}
+              className="flex flex-wrap gap-2 mb-6"
+            >
+              {benefits.map((benefit, i) => (
+                <motion.span
+                  key={i}
+                  variants={{
+                    hidden: { opacity: 0, scale: 0.8, y: 10 },
+                    show: { opacity: 1, scale: 1, y: 0 },
+                  }}
+                  whileHover={{ scale: 1.05, backgroundColor: "#1A1A1A", color: "#fff" }}
+                  className="px-3.5 py-1.5 rounded-full bg-white border border-black/10 text-xs font-medium text-black/70 cursor-default transition-colors"
+                >
+                  {benefit}
+                </motion.span>
+              ))}
+            </motion.div>
+          ) : null}
+
+          {moreInfo?.length ? (
             <div>
-              <div className="flex gap-6 border-b border-black/10 mb-5 relative">
-                {moreInfo?.length ? (
-                  <button
-                    onClick={() => setActiveTab("info")}
-                    className={`pb-3 text-sm font-medium transition-colors relative ${
-                      activeTab === "info" ? "text-black" : "text-black/40"
-                    }`}
-                  >
-                    More Information
-                    {activeTab === "info" && (
-                      <motion.div
-                        layoutId={`underline-${name}`}
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-red"
-                      />
-                    )}
-                  </button>
-                ) : null}
-                {benefits?.length ? (
-                  <button
-                    onClick={() => setActiveTab("benefits")}
-                    className={`pb-3 text-sm font-medium transition-colors relative ${
-                      activeTab === "benefits" ? "text-black" : "text-black/40"
-                    }`}
-                  >
-                    Main Benefits
-                    {activeTab === "benefits" && (
-                      <motion.div
-                        layoutId={`underline-${name}`}
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-red"
-                      />
-                    )}
-                  </button>
-                ) : null}
-              </div>
+              <motion.button
+                onClick={() => setShowInfo((v) => !v)}
+                whileHover={{ x: 4 }}
+                className="flex items-center gap-2 text-sm font-semibold text-black group"
+              >
+                <motion.span
+                  animate={{ rotate: showInfo ? 45 : 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-7 h-7 rounded-full bg-red text-white flex items-center justify-center"
+                >
+                  <Plus size={14} />
+                </motion.span>
+                {showInfo ? "Show less" : "Read full details"}
+              </motion.button>
 
-              <AnimatePresence mode="wait">
-                {activeTab === "info" && moreInfo?.length ? (
+              <AnimatePresence>
+                {showInfo && (
                   <motion.div
-                    key="info"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.25 }}
-                    className="space-y-3 text-black/70 text-sm leading-relaxed"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                    className="overflow-hidden"
                   >
-                    {moreInfo.map((para, i) => (
-                      <p key={i}>{para}</p>
-                    ))}
+                    <div className="pt-5 space-y-3 text-black/60 text-sm leading-relaxed max-w-xl border-t border-black/10 mt-5">
+                      {moreInfo.map((para, i) => (
+                        <p key={i}>{para}</p>
+                      ))}
+                    </div>
                   </motion.div>
-                ) : null}
-
-                {activeTab === "benefits" && benefits?.length ? (
-                  <motion.ul
-                    key="benefits"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.25 }}
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-                  >
-                    {benefits.map((benefit, i) => (
-                      <motion.li
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.04 }}
-                        className="flex items-start gap-2 text-sm text-black/70"
-                      >
-                        <CheckCircle2
-                          size={16}
-                          className="text-red mt-0.5 shrink-0"
-                        />
-                        {benefit}
-                      </motion.li>
-                    ))}
-                  </motion.ul>
-                ) : null}
+                )}
               </AnimatePresence>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

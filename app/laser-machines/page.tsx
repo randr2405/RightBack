@@ -19,13 +19,15 @@ const products = [
       "Thanks to the special SEI Vero function it is possible to reach a true natural look of the denim garment with full environmental care.",
     ],
     benefits: [
-      "Extremely simple installation",
-      "Max energy efficiency",
-      "4x productivity",
-      "Reduced water use",
-      "Remote diagnostics",
-      "Hi-resolution grey scale",
-      "Industry 4.0 ready",
+      "Safety and modularity for an extremely simple installation",
+      "State-of-the art performances for maximum energy efficiency and simplified care",
+      "Top productivity: up to 4 times more than traditional laser systems",
+      "Finishing process dramatically reducing total water consumption",
+      "Remote control and diagnostic module included",
+      "Hi-resolution and natural effects with grey scale",
+      "User-friendly software developed by SEI Laser: all steps intuitive and very simple",
+      "Double conveyor for optimization of production lead times",
+      "Smart manufacturing ready (Industry 4.0)",
     ],
   },
   {
@@ -41,13 +43,16 @@ const products = [
       "Flexi Denim FLAT has a special laser preview to help the operator during production, facilitating even the most complicated garment placement sequences. The software, EnGenius, creates an extremely realistic 3D model preview of the finished garment, by visualizing the design of every desired laser effect (used look, broken effects, perforations, designs and writings). Thanks to SEI Vero function it is possible to reach a true natural look of the denim garment with full environmental care.",
     ],
     benefits: [
-      "Accessible from 3 sides",
-      "Optical safety barriers",
-      "Max energy efficiency",
-      "4x productivity",
-      "Reduced water use",
-      "Remote diagnostics",
-      "Double static table",
+      "Safety and modularity for an extremely simple installation",
+      "Working area accessible from 3 sides",
+      "Optical safety barriers and safety scanner for maximum safety",
+      "State-of-the art performances for maximum energy efficiency and simplified care",
+      "Top productivity: up to 4 times more than traditional laser systems",
+      "Finishing process dramatically reducing total water consumption",
+      "Remote control and diagnostic module included",
+      "Hi-resolution and natural effects with grey scale",
+      "User-friendly software: all steps intuitive and very simple",
+      "Double static table for optimization of production lead times",
     ],
   },
   {
@@ -74,11 +79,11 @@ const products = [
     tagline: "General-purpose Laser Cutting Machine",
     description: ["Small format CO2 laser cutting machine."],
     benefits: [
-      "1000×600mm",
-      "1300×900mm",
-      "1400×900mm",
-      "1600×1000mm",
-      "1800×1000mm",
+      "Working area: 1000×600mm",
+      "Working area: 1300×900mm",
+      "Working area: 1400×900mm",
+      "Working area: 1600×1000mm",
+      "Working area: 1800×1000mm",
     ],
   },
 ];
@@ -120,15 +125,10 @@ export default function LaserMachinesPage() {
         </motion.p>
       </section>
 
-      {/* Product list — editorial full-bleed layout */}
-      <section className="overflow-hidden">
+      {/* Product list */}
+      <section>
         {products.map((product, i) => (
-          <ProductCard
-            key={product.name}
-            index={i + 1}
-            reverse={i % 2 === 1}
-            {...product}
-          />
+          <ProductCard key={product.name} index={i + 1} {...product} />
         ))}
       </section>
     </div>

@@ -1,136 +1,211 @@
 ﻿"use client";
 
-import { motion } from "framer-motion";
-import ProductCard from "@/components/ProductCard";
+import { useRef, useState } from "react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { CheckCircle2, ImageIcon } from "lucide-react";
 
-const products = [
-  {
-    brand: "SEI Laser",
-    name: "Flexi Denim 2C",
-    tagline: "The most flexible laser system of the Flexi Denim line.",
-    description: [
-      "Flexi Denim 2C has been specifically designed for the laser marking, printing and finishing of garments like blue jeans, trousers, T-shirts etc. and is able to substitute the traditional finishing operations such as discoloration, abrasion, decoration.",
-      "Flexi Denim 2C is a complete modular and flexible system, suitable for all modern production and workflow needs.",
-    ],
-    moreInfo: [
-      "The system is equipped with two conveyors that allow both a continuous workflow (used separately) and the finishing of extra-large size garments (working jointly).",
-      "Flexi Denim 2C has a special laser preview, assisting the operator in production, facilitating even the most complicated garment positioning sequences.",
-      "EnGenius software helps to create an extremely realistic 3D modeling preview of the final garment, by visualizing and enabling the design of all desired laser finishing effects (used looks, broken effects, perforations, designs and writings).",
-      "Thanks to the special SEI Vero function it is possible to reach a true natural look of the denim garment with full environmental care.",
-    ],
-    benefits: [
-      "Safety and modularity for an extremely simple installation",
-      "State-of-the art performances for maximum energy efficiency and simplified care",
-      "Top productivity: up to 4 times more than traditional laser systems",
-      "Finishing process dramatically reducing total water consumption",
-      "Remote control and diagnostic module included",
-      "Hi-resolution and natural effects with grey scale",
-      "User-friendly software developed by SEI Laser: all steps intuitive and very simple",
-      "Double conveyor for optimization of production lead times",
-      "Smart manufacturing ready (Industry 4.0)",
-    ],
-  },
-  {
-    brand: "SEI Laser",
-    name: "Flexi Denim Flat",
-    tagline: "The most compact laser solution for garments processing.",
-    description: [
-      "Flexi Denim FLAT has been specially designed for marking, printing and finishing garments such as blue jeans, trousers, t-shirts etc.",
-      "Flexi Denim FLAT is able to replace some traditional finishing operations: discoloration, abrasion or decoration.",
-    ],
-    moreInfo: [
-      "Flexi Denim FLAT is entirely modular and flexible, meaning that it is suitable for every modern production and workflow need. This system is equipped with two static areas that allow a continuous workflow and finishing of extra-large size garments.",
-      "Flexi Denim FLAT has a special laser preview to help the operator during production, facilitating even the most complicated garment placement sequences. The software, EnGenius, creates an extremely realistic 3D model preview of the finished garment, by visualizing the design of every desired laser effect (used look, broken effects, perforations, designs and writings). Thanks to SEI Vero function it is possible to reach a true natural look of the denim garment with full environmental care.",
-    ],
-    benefits: [
-      "Safety and modularity for an extremely simple installation",
-      "Working area accessible from 3 sides",
-      "Optical safety barriers and safety scanner for maximum safety",
-      "State-of-the art performances for maximum energy efficiency and simplified care",
-      "Top productivity: up to 4 times more than traditional laser systems",
-      "Finishing process dramatically reducing total water consumption",
-      "Remote control and diagnostic module included",
-      "Hi-resolution and natural effects with grey scale",
-      "User-friendly software: all steps intuitive and very simple",
-      "Double static table for optimization of production lead times",
-    ],
-  },
-  {
-    brand: "Golden Laser",
-    name: "Visioncut",
-    tagline:
-      "Vision Scanning Laser Cutting Machine for Sublimation Fabric CJGV-160130LD / 190130LD / 160200LD",
-    description: [
-      "Golden Laser's Vision Laser Cutting Machine is ideal for cutting sublimation textile fabrics of all shapes and sizes. Cameras scan the fabric, detect and recognize printed contour, or read the registration marks and cut the chosen designs with speed and accuracy. A conveyor and auto-feeder is used to keep cutting continuous, saving time and increasing production speed.",
-    ],
-  },
-  {
-    brand: "Golden Laser",
-    name: "Independent Dual Head Laser Cutting Machine",
-    tagline:
-      "Independent Dual Heads Laser Cutting Machine XBJGHY-1601OOLDII CJGV-160130LD / 190130LD / 160200LD",
-    description: [
-      "This laser cutting machine is equipped with two independent laser cutting heads on two tracks that can operate independently at the same time, supporting simultaneous cutting of different shapes. This setup allows for increased efficiency and productivity in laser cutting operations.",
-    ],
-  },
-  {
-    brand: "Golden Laser",
-    name: "General Purpose Laser Cutting Machine",
-    tagline: "General-purpose Laser Cutting Machine",
-    description: ["Small format CO2 laser cutting machine."],
-    benefits: [
-      "Working area: 1000×600mm",
-      "Working area: 1300×900mm",
-      "Working area: 1400×900mm",
-      "Working area: 1600×1000mm",
-      "Working area: 1800×1000mm",
-    ],
-  },
-];
+export type ProductCardProps = {
+  index: number;
+  brand: string;
+  name: string;
+  tagline: string;
+  description: string[];
+  moreInfo?: string[];
+  benefits?: string[];
+  imageSrc?: string;
+};
 
-export default function LaserMachinesPage() {
+export default function ProductCard({
+  index,
+  brand,
+  name,
+  tagline,
+  description,
+  moreInfo,
+  benefits,
+  imageSrc,
+}: ProductCardProps) {
+  const ref = useRef(null);
+  const [tab, setTab] = useState<"info" | "benefits">(
+    moreInfo?.length ? "info" : "benefits"
+  );
+
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+  const imageY = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
+
+  const tabs: { key: "info" | "benefits"; label: string }[] = [
+    ...(moreInfo?.length ? [{ key: "info" as const, label: "More Information" }] : []),
+    ...(benefits?.length ? [{ key: "benefits" as const, label: "Main Benefits" }] : []),
+  ];
+
   return (
-    <div className="bg-neutral-100 flex-1">
-      {/* Hero */}
-      <section className="relative bg-black text-white text-center px-6 py-32 overflow-hidden">
-        <motion.div
-          className="absolute -top-20 left-1/4 w-96 h-96 rounded-full bg-red/20 blur-3xl"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.span
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative inline-block text-red text-sm font-semibold uppercase tracking-widest mb-4"
-        >
-          Precision Finishing
-        </motion.span>
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="relative text-4xl sm:text-6xl lg:text-7xl font-bold"
-        >
-          Laser Machines
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="relative mt-6 max-w-2xl mx-auto text-white/70 text-lg"
-        >
-          Modern laser marking, finishing, and cutting technology for denim,
-          garments, and sublimation fabrics.
-        </motion.p>
-      </section>
+    <div ref={ref} className="relative py-16 sm:py-20 px-6">
+      <div className="max-w-6xl mx-auto rounded-[2rem] bg-white shadow-xl shadow-black/[0.03] border border-black/5 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12">
+          {/* Image panel — always left, dark-tinted background */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.6 }}
+            className="lg:col-span-5 relative bg-neutral-900 min-h-[320px] flex items-center justify-center overflow-hidden"
+          >
+            <div className="absolute top-6 left-6 flex items-center gap-2 z-10">
+              <span className="text-red text-xs font-bold">
+                {String(index).padStart(2, "0")}
+              </span>
+              <span className="text-white/40 text-xs">/</span>
+              <span className="text-white/60 text-xs uppercase tracking-wider">
+                {brand}
+              </span>
+            </div>
+            <motion.div
+              className="absolute -bottom-10 -right-10 w-56 h-56 rounded-full bg-red/20 blur-3xl"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              style={{ y: imageY }}
+              className="relative w-full h-full flex items-center justify-center p-10"
+            >
+              {imageSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={imageSrc}
+                  alt={name}
+                  className="max-h-64 max-w-full object-contain drop-shadow-2xl"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-white/25">
+                  <ImageIcon size={40} strokeWidth={1.2} />
+                  <span className="text-xs">Image coming soon</span>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
 
-      {/* Product list */}
-      <section>
-        {products.map((product, i) => (
-          <ProductCard key={product.name} index={i + 1} {...product} />
-        ))}
-      </section>
+          {/* Content panel — always right */}
+          <div className="lg:col-span-7 p-8 sm:p-12">
+            <motion.h3
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-2xl sm:text-3xl font-bold text-black leading-tight mb-3"
+            >
+              {name}
+            </motion.h3>
+
+            <motion.p
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.05 }}
+              className="text-black/80 font-medium mb-4"
+            >
+              {tagline}
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="space-y-3 text-black/60 text-sm leading-relaxed mb-8"
+            >
+              {description.map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+            </motion.div>
+
+            {tabs.length > 0 && (
+              <div>
+                {tabs.length > 1 && (
+                  <div className="relative inline-flex bg-neutral-100 rounded-full p-1 mb-6">
+                    {tabs.map((t) => (
+                      <button
+                        key={t.key}
+                        onClick={() => setTab(t.key)}
+                        className="relative px-5 py-2 text-xs font-semibold rounded-full z-10 transition-colors"
+                        style={{ color: tab === t.key ? "#fff" : "#1A1A1A99" }}
+                      >
+                        {tab === t.key && (
+                          <motion.div
+                            layoutId={`pill-${name}`}
+                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                            className="absolute inset-0 bg-black rounded-full -z-10"
+                          />
+                        )}
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {tabs.length === 1 && (
+                  <div className="flex items-center gap-2 mb-5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-black">
+                      {tabs[0].label}
+                    </h4>
+                  </div>
+                )}
+
+                <AnimatePresence mode="wait">
+                  {tab === "info" && moreInfo?.length ? (
+                    <motion.div
+                      key="info"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.25 }}
+                      className="space-y-3 text-black/60 text-sm leading-relaxed"
+                    >
+                      {moreInfo.map((para, i) => (
+                        <p key={i}>{para}</p>
+                      ))}
+                    </motion.div>
+                  ) : null}
+
+                  {tab === "benefits" && benefits?.length ? (
+                    <motion.ul
+                      key="benefits"
+                      initial="hidden"
+                      animate="show"
+                      exit={{ opacity: 0, y: -8 }}
+                      variants={{
+                        hidden: {},
+                        show: { transition: { staggerChildren: 0.04 } },
+                      }}
+                      className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2"
+                    >
+                      {benefits.map((benefit, i) => (
+                        <motion.li
+                          key={i}
+                          variants={{
+                            hidden: { opacity: 0, x: -8 },
+                            show: { opacity: 1, x: 0 },
+                          }}
+                          className="flex items-start gap-2 text-sm text-black/70"
+                        >
+                          <CheckCircle2
+                            size={15}
+                            className="text-red mt-0.5 shrink-0"
+                          />
+                          {benefit}
+                        </motion.li>
+                      ))}
+                    </motion.ul>
+                  ) : null}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

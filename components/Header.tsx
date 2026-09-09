@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -48,6 +49,17 @@ const navItems = [
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setOpenMenu(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header className="bg-cream border-b border-black/10 relative z-50">
@@ -56,32 +68,48 @@ export default function Header() {
           RightBack <span className="text-red">Technology</span>
         </Link>
 
-        <nav className="flex items-center gap-6">
+        <nav ref={navRef} className="flex items-center gap-6">
           {navItems.map((item) => (
-            <div
-              key={item.label}
-              className="relative"
-              onMouseEnter={() => item.children && setOpenMenu(item.label)}
-              onMouseLeave={() => item.children && setOpenMenu(null)}
-            >
-              <Link
-                href={item.href}
-                className="text-sm font-medium text-black hover:text-red transition-colors"
-              >
-                {item.label}
-              </Link>
+            <div key={item.label} className="relative">
+              {item.children ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenMenu(openMenu === item.label ? null : item.label)
+                  }
+                  className="flex items-center gap-1 text-sm font-medium text-black hover:text-red transition-colors"
+                >
+                  {item.label}
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${
+                      openMenu === item.label ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+              ) : (
+                <Link
+                  href={item.href}
+                  className="text-sm font-medium text-black hover:text-red transition-colors"
+                >
+                  {item.label}
+                </Link>
+              )}
 
               {item.children && openMenu === item.label && (
-                <div className="absolute top-full left-0 mt-2 bg-white shadow-lg rounded-md py-2 min-w-[200px]">
-                  {item.children.map((child) => (
-                    <Link
-                      key={child.href}
-                      href={child.href}
-                      className="block px-4 py-2 text-sm text-black hover:bg-cream hover:text-red"
-                    >
-                      {child.label}
-                    </Link>
-                  ))}
+                <div className="absolute top-full left-0 pt-2 min-w-[220px]">
+                  <div className="bg-white shadow-lg rounded-md py-2 border border-black/5">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        onClick={() => setOpenMenu(null)}
+                        className="block px-4 py-2 text-sm text-black hover:bg-cream hover:text-red transition-colors"
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

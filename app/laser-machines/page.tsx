@@ -18,16 +18,21 @@ const products = [
       "EnGenius software helps to create an extremely realistic 3D modeling preview of the final garment, by visualizing and enabling the design of all desired laser finishing effects (used looks, broken effects, perforations, designs and writings).",
       "Thanks to the special SEI Vero function it is possible to reach a true natural look of the denim garment with full environmental care.",
     ],
-    benefits: [
-      "Safety and modularity for an extremely simple installation",
-      "State-of-the art performances for maximum energy efficiency and simplified care",
-      "Top productivity: up to 4 times more than traditional laser systems",
-      "Finishing process dramatically reducing total water consumption",
-      "Remote control and diagnostic module included",
-      "Hi-resolution and natural effects with grey scale",
-      "User-friendly software developed by SEI Laser: all steps intuitive and very simple",
-      "Double conveyor for optimization of production lead times",
-      "Smart manufacturing ready (Industry 4.0)",
+    groups: [
+      {
+        label: "Main Benefits",
+        items: [
+          "Safety and modularity for an extremely simple installation",
+          "State-of-the art performances for maximum energy efficiency and simplified care",
+          "Top productivity: up to 4 times more than traditional laser systems",
+          "Finishing process dramatically reducing total water consumption",
+          "Remote control and diagnostic module included",
+          "Hi-resolution and natural effects with grey scale",
+          "User-friendly software developed by SEI Laser: all steps intuitive and very simple",
+          "Double conveyor for optimization of production lead times",
+          "Smart manufacturing ready (Industry 4.0)",
+        ],
+      },
     ],
   },
   {
@@ -42,17 +47,22 @@ const products = [
       "Flexi Denim FLAT is entirely modular and flexible, meaning that it is suitable for every modern production and workflow need. This system is equipped with two static areas that allow a continuous workflow and finishing of extra-large size garments.",
       "Flexi Denim FLAT has a special laser preview to help the operator during production, facilitating even the most complicated garment placement sequences. The software, EnGenius, creates an extremely realistic 3D model preview of the finished garment, by visualizing the design of every desired laser effect (used look, broken effects, perforations, designs and writings). Thanks to SEI Vero function it is possible to reach a true natural look of the denim garment with full environmental care.",
     ],
-    benefits: [
-      "Safety and modularity for an extremely simple installation",
-      "Working area accessible from 3 sides",
-      "Optical safety barriers and safety scanner for maximum safety",
-      "State-of-the art performances for maximum energy efficiency and simplified care",
-      "Top productivity: up to 4 times more than traditional laser systems",
-      "Finishing process dramatically reducing total water consumption",
-      "Remote control and diagnostic module included",
-      "Hi-resolution and natural effects with grey scale",
-      "User-friendly software: all steps intuitive and very simple",
-      "Double static table for optimization of production lead times",
+    groups: [
+      {
+        label: "Main Benefits",
+        items: [
+          "Safety and modularity for an extremely simple installation",
+          "Working area accessible from 3 sides",
+          "Optical safety barriers and safety scanner for maximum safety",
+          "State-of-the art performances for maximum energy efficiency and simplified care",
+          "Top productivity: up to 4 times more than traditional laser systems",
+          "Finishing process dramatically reducing total water consumption",
+          "Remote control and diagnostic module included",
+          "Hi-resolution and natural effects with grey scale",
+          "User-friendly software: all steps intuitive and very simple",
+          "Double static table for optimization of production lead times",
+        ],
+      },
     ],
   },
   {
@@ -78,12 +88,17 @@ const products = [
     name: "General Purpose Laser Cutting Machine",
     tagline: "General-purpose Laser Cutting Machine",
     description: ["Small format CO2 laser cutting machine."],
-    benefits: [
-      "Working area: 1000×600mm",
-      "Working area: 1300×900mm",
-      "Working area: 1400×900mm",
-      "Working area: 1600×1000mm",
-      "Working area: 1800×1000mm",
+    groups: [
+      {
+        label: "Working Areas",
+        items: [
+          "1000×600mm",
+          "1300×900mm",
+          "1400×900mm",
+          "1600×1000mm",
+          "1800×1000mm",
+        ],
+      },
     ],
   },
 ];

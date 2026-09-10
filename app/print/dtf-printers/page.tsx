@@ -17,13 +17,18 @@ const products = [
       { label: "Print Speed", value: "2–3 m²/h" },
       { label: "Ink Type", value: "CMYK+W" },
     ],
-    benefits: [
-      "Built-in powder shaker ensures even distribution of printed images",
-      "Independent white ink recirculation system to prevent white ink clogging",
-      "Supports colour printing to make products more attractive and unique",
-      "The controller has a touch screen, which is user-friendly and improves productivity",
-      "The front and rear arc-shaped heating platforms heat and adsorb to keep the media flat",
-      "LED light functions to help operators view the printing process",
+    groups: [
+      {
+        label: "Top Features",
+        items: [
+          "Built-in powder shaker ensures even distribution of printed images",
+          "Independent white ink recirculation system to prevent white ink clogging",
+          "Supports colour printing to make products more attractive and unique",
+          "The controller has a touch screen, which is user-friendly and improves productivity",
+          "The front and rear arc-shaped heating platforms heat and adsorb to keep the media flat",
+          "LED light functions to help operators view the printing process",
+        ],
+      },
     ],
   },
   {
@@ -39,14 +44,19 @@ const products = [
       { label: "Print Speed", value: "2–6 m²/h · 4–13 m²/h" },
       { label: "Ink Type", value: "CMYK+W" },
     ],
-    benefits: [
-      "Compact and space-saving design fits any workspace",
-      "Built-in print head moisturizing function ensures long-lasting operation with no additional costs",
-      "Patented feed roller designed for ease of use and convenience",
-      "Quiet dual-axis design enhances the working environment",
-      "Includes a convenient computer stand and smart electric paper press for one-touch operation",
-      "Transparent monitoring window for easy checking of print head status",
-      "Precise lift mechanism ensures stable and consistent printing",
+    groups: [
+      {
+        label: "Design Features",
+        items: [
+          "Compact and space-saving design fits any workspace",
+          "Built-in print head moisturizing function ensures long-lasting operation with no additional costs",
+          "Patented feed roller designed for ease of use and convenience",
+          "Quiet dual-axis design enhances the working environment",
+          "Includes a convenient computer stand and smart electric paper press for one-touch operation",
+          "Transparent monitoring window for easy checking of print head status",
+          "Precise lift mechanism ensures stable and consistent printing",
+        ],
+      },
     ],
   },
   {
@@ -56,13 +66,18 @@ const products = [
     description: [
       "UV DTF (Direct-to-Film) printers differ from UV printers that print directly onto object surfaces. Instead, they use ultraviolet light to cure UV ink onto a film, and then transfer the pattern from the film to surfaces such as mugs, glass, and metal, resulting in durable, high-resolution prints quickly.",
     ],
-    benefits: [
-      "Equipped with an Epson original authorized print head, with options for XP600 or 1600U1",
-      "A compact desktop machine, offering an optional tripod for versatile usage",
-      "Features a highly sensitive trolley collision avoidance system, coupled with an ink shortage alarm for enhanced safety and reliability",
-      "Incorporates an electric-driven press paper mode and integrated electric laminating for streamlined operation",
-      "Includes a standard AB Film Printing Solution, catering to a wide range of printing needs",
-      "Compact in size yet packed with large energy, offering a space-saving solution without compromising on power",
+    groups: [
+      {
+        label: "Features",
+        items: [
+          "Equipped with an Epson original authorized print head, with options for XP600 or 1600U1",
+          "A compact desktop machine, offering an optional tripod for versatile usage",
+          "Features a highly sensitive trolley collision avoidance system, coupled with an ink shortage alarm for enhanced safety and reliability",
+          "Incorporates an electric-driven press paper mode and integrated electric laminating for streamlined operation",
+          "Includes a standard AB Film Printing Solution, catering to a wide range of printing needs",
+          "Compact in size yet packed with large energy, offering a space-saving solution without compromising on power",
+        ],
+      },
     ],
   },
   {
@@ -72,22 +87,28 @@ const products = [
     description: [
       "A precision roll-fed flatbed cutting system built for DTF and UV DTF workflows, combining intelligent camera-guided cutting with strong vacuum adsorption and flexible connectivity.",
     ],
-    moreInfo: [
-      "Intelligent Cutting System — Equipped with a high-speed servo motor, imported guide rails, and AI algorithms for fast and highly accurate cuts.",
-      "Real-Time Camera Positioning — Automatically tracks complex contours with precision and stability, perfect for labels, packaging, and UV DTF graphics.",
-      "Lower Labour Costs — Features a high-quality felt conveyor and a fully automated feeding/cutting system, significantly reducing manual workload.",
-      "Strong Multi-Zone Vacuum Adsorption — Keeps materials firmly in place with low noise and high suction power, ideal for various substrates and shapes.",
-      "HD Touchscreen Control Panel — Simple, intuitive operation with a bright LCD interface that supports multiple languages.",
-      "Dual Blade Switching — Effortlessly alternate between half-cut and full-cut modes depending on your project needs.",
-      "Flexible Connectivity — Supports USB, USB flash drive, and Ethernet for seamless integration in diverse production environments.",
-    ],
-    benefits: [
-      "Stronger carriage — controls cutting accuracy",
-      "High precision steel axes — accurate, error-free paper feeding",
-      "Bespoke paper feeding pinch roller",
-      "High temperature and wear resistance, long service life",
-      "More interfaces: USB / U Disk / Serial port",
-      "3 different interfaces for more convenient operation",
+    groups: [
+      {
+        label: "Features",
+        items: [
+          "Intelligent Cutting System — high-speed servo motor, imported guide rails, and AI algorithms for fast and highly accurate cuts",
+          "Real-Time Camera Positioning — automatically tracks complex contours with precision and stability, perfect for labels, packaging, and UV DTF graphics",
+          "Lower Labour Costs — high-quality felt conveyor and fully automated feeding/cutting system, significantly reducing manual workload",
+          "Strong Multi-Zone Vacuum Adsorption — keeps materials firmly in place with low noise and high suction power",
+          "HD Touchscreen Control Panel — simple, intuitive operation with a bright LCD interface supporting multiple languages",
+          "Dual Blade Switching — effortlessly alternate between half-cut and full-cut modes",
+          "Flexible Connectivity — supports USB, USB flash drive, and Ethernet",
+        ],
+      },
+      {
+        label: "Advantages",
+        items: [
+          "Stronger carriage — controls cutting accuracy",
+          "High precision steel axes — accurate, error-free paper feeding",
+          "Bespoke paper feeding pinch roller with high temperature and wear resistance, long service life",
+          "More interfaces: USB / U Disk / Serial port for convenient operation",
+        ],
+      },
     ],
   },
 ];

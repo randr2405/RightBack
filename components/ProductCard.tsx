@@ -1,221 +1,100 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { Check, ImageIcon } from "lucide-react";
+import ProductCard from "@/components/ProductCard";
+import CategoryHero from "@/components/CategoryHero";
 
-export type SpecRow = { label: string; value: string };
+const products = [
+  {
+    brand: "Cutting",
+    name: "iCut",
+    tagline: "High-precision multi-functional CNC cutting",
+    description: [
+      "High-precision multi-functional CNC cutting machines specially developed for mass production. This series of cutting machine is suitable for the garment industry, shoes and hats industry, luggage industry, automotive interior industry, home industry, sofa seat industry, plush toy industry, composite fabrics and other soft material cutting fields.",
+      "After adsorption, it can reach standard thickness of 8cm. The cutting machine has excellent cutting speed and maintains the highest precision among the same type of cutting machine. It has excellent energy-saving, low-carbon and intelligent high-tech qualities.",
+    ],
+    groups: [
+      {
+        label: "Features",
+        items: [
+          "Machine tool advantage: high transmission precision, high dimensional accuracy, good rigidity, stable start and stop, and stable transmission speed",
+          "Operation advantage: Advanced module technology combined with intuitive touch technology for easy operation, automatic fault alarm function for easy diagnosis and treatment",
+          "Software advantage: Integrated software with easy-to-use control methods and visual management system for multi-angle full-scale operation",
+          "Cutting advantage: high cutting precision, no deformation, less lint, high efficiency",
+          "Consumables advantage: Spin-type double-sided sharpening knife, can cut more than 10,000 pieces per day, long working time and high efficiency",
+        ],
+      },
+      {
+        label: "Standard Configuration",
+        items: [
+          "HAN Core blade intelligence 4.0 system",
+          "Automatic covered film",
+          "Five shafts double blade plate",
+          "Frequency conversion vacuum system",
+          "Dust-collection system",
+          "Levitation blade",
+          "Automatic blade sharpening",
+          "Air cooling system",
+          "303 HAN Core blade",
+          "Maintain partial vacuuming during advance",
+          "Safety device",
+          "Spindle synchronous drive",
+          "Film unfolding assistance",
+        ],
+      },
+      {
+        label: "Option Configuration",
+        items: [
+          "Max cutting height 11cm",
+          "Hollow punching device",
+          "Solid punching device",
+          "Moving system",
+          "Automatic lubrication oil cooling system",
+        ],
+      },
+    ],
+  },
+  {
+    brand: "Cutting",
+    name: "Multilayer Template Cutting Machine HB-1512CS",
+    tagline: "Precision multilayer cutting up to 8mm thickness",
+    description: [
+      "A robust multilayer template cutting machine designed for high-speed, high-precision cutting across a range of material stacks and custom specifications.",
+    ],
+    groups: [
+      {
+        label: "Features",
+        items: [
+          "Can once cut 8mm thickness within the 1-5 layers template",
+          "Gold partner Kimo 2020 template software",
+          "Material fixed way: mechanical clamping",
+          "Frame platform design and manufacture according to the standard of numerical control machine",
+          "High speed, precision, no code, curve smooth without shaking",
+          "Accept the bespoke specifications, the maximum cutting area can do 3000×1600mm",
+        ],
+      },
+    ],
+  },
+];
 
-export type ProductCardProps = {
-  index: number;
-  brand: string;
-  name: string;
-  tagline: string;
-  description?: string[];
-  moreInfo?: string[];
-  benefits?: string[];
-  specs?: SpecRow[];
-  imageSrc?: string;
-};
-
-export default function ProductCard({
-  index,
-  brand,
-  name,
-  tagline,
-  description,
-  moreInfo,
-  benefits,
-  specs,
-  imageSrc,
-}: ProductCardProps) {
-  const ref = useRef(null);
-  const [tab, setTab] = useState<"info" | "benefits" | "specs">(
-    moreInfo?.length ? "info" : benefits?.length ? "benefits" : "specs"
-  );
-
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
-  const imageScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.08, 1, 1.08]);
-
-  const tabs: { key: "info" | "benefits" | "specs"; label: string; count?: number }[] = [
-    ...(moreInfo?.length ? [{ key: "info" as const, label: "Details" }] : []),
-    ...(benefits?.length
-      ? [{ key: "benefits" as const, label: "Benefits", count: benefits.length }]
-      : []),
-    ...(specs?.length
-      ? [{ key: "specs" as const, label: "Specifications", count: specs.length }]
-      : []),
-  ];
-
+export default function CNCCuttingPage() {
   return (
-    <article ref={ref} className="border-t border-black/10 first:border-t-0">
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-20 sm:py-28">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-12 gap-y-10">
-          {/* Number + brand rail */}
-          <div className="lg:col-span-2 flex lg:flex-col items-baseline lg:items-start gap-3 lg:gap-6">
-            <span className="text-6xl sm:text-7xl font-light text-black/10 tabular-nums leading-none">
-              {String(index).padStart(2, "0")}
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-black/40 lg:mt-auto">
-              {brand}
-            </span>
-          </div>
+    <div className="bg-neutral-100 flex-1">
+      <CategoryHero
+        eyebrow="Cutting"
+        title="CNC Cutting"
+        ghostWord="CNC"
+        description="High-precision, multi-functional CNC cutting technology built for speed, accuracy, and mass production across industries."
+        stats={[
+          { value: "2", label: "Systems" },
+          { value: "8cm", label: "Max Thickness" },
+        ]}
+      />
 
-          {/* Image */}
-          <div className="lg:col-span-4">
-            <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
-              {imageSrc ? (
-                <motion.img
-                  style={{ scale: imageScale }}
-                  src={imageSrc}
-                  alt={name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-black/20">
-                  <ImageIcon size={32} strokeWidth={1} />
-                  <span className="text-[11px] tracking-wide">No image yet</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="lg:col-span-6">
-            <h3 className="text-3xl sm:text-4xl font-semibold text-black leading-[1.1] tracking-tight mb-4">
-              {name}
-            </h3>
-
-            <p className="text-lg text-black/70 italic leading-snug mb-6 pl-4 border-l-2 border-red/40">
-              {tagline}
-            </p>
-
-            <div className="space-y-4 text-black/60 text-[15px] leading-relaxed mb-10 max-w-xl">
-              {(description ?? []).map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
-            </div>
-
-            {tabs.length > 0 && (
-              <div>
-                {tabs.length > 1 ? (
-                  <div className="flex gap-8 border-b border-black/10 mb-8">
-                    {tabs.map((t) => (
-                      <button
-                        key={t.key}
-                        onClick={() => setTab(t.key)}
-                        className="relative pb-3 text-[13px] font-medium tracking-wide flex items-center gap-1.5"
-                        style={{ color: tab === t.key ? "#1A1A1A" : "#1A1A1A55" }}
-                      >
-                        {t.label}
-                        {t.count ? (
-                          <span
-                            className="text-[10px] px-1.5 py-0.5 rounded-full"
-                            style={{
-                              background: tab === t.key ? "#1A1A1A" : "#1A1A1A0D",
-                              color: tab === t.key ? "#fff" : "#1A1A1A66",
-                            }}
-                          >
-                            {t.count}
-                          </span>
-                        ) : null}
-                        {tab === t.key && (
-                          <motion.span
-                            layoutId={`underline-${name}`}
-                            transition={{ type: "spring", stiffness: 500, damping: 40 }}
-                            className="absolute left-0 right-0 -bottom-px h-[1.5px] bg-red"
-                          />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-black/40 mb-6">
-                    {tabs[0].label}
-                  </div>
-                )}
-
-                <AnimatePresence mode="wait">
-                  {tab === "info" && moreInfo?.length ? (
-                    <motion.div
-                      key="info"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="space-y-4 text-black/60 text-[14px] leading-relaxed max-w-xl"
-                    >
-                      {moreInfo.map((para, i) => (
-                        <p key={i}>{para}</p>
-                      ))}
-                    </motion.div>
-                  ) : null}
-
-                  {tab === "benefits" && benefits?.length ? (
-                    <motion.div
-                      key="benefits"
-                      initial="hidden"
-                      animate="show"
-                      exit={{ opacity: 0 }}
-                      variants={{
-                        hidden: {},
-                        show: { transition: { staggerChildren: 0.04 } },
-                      }}
-                      className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-                    >
-                      {benefits.map((benefit, i) => (
-                        <motion.div
-                          key={i}
-                          variants={{
-                            hidden: { opacity: 0, y: 8 },
-                            show: { opacity: 1, y: 0 },
-                          }}
-                          className="flex items-start gap-3 p-3 rounded-lg bg-neutral-50 border border-black/5"
-                        >
-                          <span className="mt-0.5 w-5 h-5 rounded-full bg-black text-white flex items-center justify-center shrink-0">
-                            <Check size={11} strokeWidth={3} />
-                          </span>
-                          <span className="text-[13.5px] text-black/75 leading-snug">
-                            {benefit}
-                          </span>
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  ) : null}
-
-                  {tab === "specs" && specs?.length ? (
-                    <motion.div
-                      key="specs"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="rounded-xl border border-black/10 divide-y divide-black/[0.06] overflow-hidden"
-                    >
-                      {specs.map((spec, i) => (
-                        <div
-                          key={i}
-                          className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]"
-                        >
-                          <div className="px-4 py-3 text-[12px] font-medium text-black/50 uppercase tracking-wide bg-neutral-50 border-r border-black/[0.06]">
-                            {spec.label}
-                          </div>
-                          <div className="px-4 py-3 text-[13.5px] text-black font-mono">
-                            {spec.value}
-                          </div>
-                        </div>
-                      ))}
-                    </motion.div>
-                  ) : null}
-                </AnimatePresence>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </article>
+      <section>
+        {products.map((product, i) => (
+          <ProductCard key={product.name} index={i + 1} {...product} />
+        ))}
+      </section>
+    </div>
   );
 }

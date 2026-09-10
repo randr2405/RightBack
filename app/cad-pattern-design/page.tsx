@@ -27,15 +27,29 @@ const products = [
       "Digitizer EXPERT is the perfect solution for any industry or sector that requires digitization of cardboard patterns. It is compatible with smartphone camera or web camera, recommended for medium and small sized patterns which are commonly used in fashion industry, or with high-resolution camera, fit for big size patterns usually used in furniture upholstery.",
       "Enjoy high ergonomics and intuitiveness! You can uncover the secrets of this friendly app in the blink of an eye...",
     ],
-    benefits: [
-      "5-minute setup, up to 60 patterns digitized/hour",
-      "Any flat surface can become your digitizing background",
-      "Pictures instantly loaded into desktop app via cloud",
-      "Automatic detection of piece contours and grading points",
-      "Detects notches, internal points, and internal axes",
-      "Check and edit technical elements with a few clicks",
-      "Perform measurements between elements or on contours",
-      "Edit properties of pieces or selected elements",
+    groups: [
+      {
+        label: "1Digitize",
+        items: [
+          "Enjoy a 5-minute setup and a productivity of up to 60 cardboard patterns digitized/hour, using the Mobile Digitizer module and smartphone camera",
+          "Any flat surface, horizontal or vertical, can become your digitizing background",
+          "Pictures are instantly loaded into your desktop app via cloud and automatically converted into digital files",
+        ],
+      },
+      {
+        label: "Detect",
+        items: [
+          "Through powerful auto-recognition capabilities, the app automatically detects piece contours and key grading points, as well as notches, internal points, and internal axes",
+        ],
+      },
+      {
+        label: "Check & Edit",
+        items: [
+          "Check the technical elements or create new ones",
+          "Perform measurements between elements or on contour perimeters",
+          "Edit the properties of pieces or selected elements (point, segment, internal line, internal point)",
+        ],
+      },
     ],
   },
   {
@@ -45,17 +59,24 @@ const products = [
     description: [
       "GEMINI AutomART® reinvents the workflow for decorated apparel businesses and empowers you to make significant savings every step of the way, from product development, to applying decorations and manufacturing. With intuitive and efficient tools and features, you will cut down the decorating time by 60%, while saving up to 30% on raw materials, consumables and the pre-sewing manufacturing time. AutomART® can drastically improve yield and productivity to boost the decorated apparel businesses for Digital Printing, Laser Engraving and Digital Embroidery.",
     ],
-    moreInfo: [
-      "Smart Functions for Perfect Design — Import your desired graphical elements as PDF or Adobe Illustrator native files, and then use the power of fashion-specific functions to easily manage the artwork on your patterns, ensuring perfect aesthetic and technical quality. You can place, reposition, and grade the artwork automatically for the entire size set, for coherent design and similar look on all sizes.",
-      "You can automatically align the graphical elements across seams or zippers for a perfect match between assembled parts, saving up to 60% of product development time.",
-    ],
-    benefits: [
-      "Automatic optimized best-efficiency markers",
-      "Print PDF and cut files generated automatically",
-      "Registration marks or outlines added automatically",
-      "Long markers auto-managed for RIP software processing",
-      "Color information preserved from imported PDF/AI files",
-      "Perfect output for direct-to-fabric and transfer printing",
+    groups: [
+      {
+        label: "Smart Design",
+        items: [
+          "Import graphical elements as PDF or Adobe Illustrator native files and manage artwork on your patterns with fashion-specific functions",
+          "Automatically place, reposition, and grade artwork for the entire size set, for coherent design across all sizes",
+          "Automatically align graphical elements across seams or zippers for a perfect match between assembled parts",
+        ],
+      },
+      {
+        label: "Manufacturing Yield",
+        items: [
+          "Automatic optimized best-efficiency markers with print PDF and cut files generated automatically",
+          "Registration marks or outlines added automatically to optimize cutting",
+          "Long markers auto-managed for RIP software processing",
+          "Color information preserved from imported PDF/AI files for direct-to-fabric and transfer printing",
+        ],
+      },
     ],
   },
   {
@@ -65,13 +86,18 @@ const products = [
     description: [
       "Get highly efficient automatic cut planning in a fast and comfortable way. You can plan all the fabrics at once (main, lining, fusing, etc.), check multiple planning alternatives until choosing the best one, export all the production files at once.",
     ],
-    benefits: [
-      "Plan all fabrics at once — main, lining, fusing",
-      "Check multiple planning alternatives before choosing",
-      "Export all production files at once",
-      "Increased speed for high order and marker volumes",
-      "Full cost visibility — fabric, machinery, labor, energy",
-      "Identify new solutions to optimize your budget",
+    groups: [
+      {
+        label: "Capabilities",
+        items: [
+          "Plan all fabrics at once — main, lining, fusing",
+          "Check multiple planning alternatives before choosing",
+          "Export all production files at once",
+          "Increased speed for high order and marker volumes",
+          "Full cost visibility — fabric, machinery, labor, energy",
+          "Identify new solutions to optimize your budget",
+        ],
+      },
     ],
   },
   {
@@ -81,13 +107,18 @@ const products = [
     description: [
       "Based on our renowned proprietary algorithm, perform fully automatic, fast and high efficiency marker nesting optimization in apparel, upholstery, technical textiles, digital printing and other industries, saving fabrics while obeying various nesting rules and restrictions.",
     ],
-    benefits: [
-      "Solves piece grouping, fusing blocks, and alignment",
-      "Handles color shading and fabric defects",
-      "Visualize and validate plaid/check matching on-screen",
-      "Imposition and nesting for ready-to-print PDF or AI files",
-      "Saves fabric, transfer paper, ink, and time",
-      "Preserves color management info perfectly",
+    groups: [
+      {
+        label: "Capabilities",
+        items: [
+          "Solves piece grouping, fusing blocks, and alignment",
+          "Handles color shading and fabric defects",
+          "Visualize and validate plaid/check matching on-screen",
+          "Imposition and nesting for ready-to-print PDF or AI files",
+          "Saves fabric, transfer paper, ink, and time",
+          "Preserves color management info perfectly",
+        ],
+      },
     ],
   },
   {
@@ -97,13 +128,18 @@ const products = [
     description: [
       "Based on our renowned proprietary algorithm, perform fully automatic, fast and high efficiency marker nesting optimization in apparel, upholstery, technical textiles, digital printing and other industries, saving fabrics while obeying various nesting rules and restrictions.",
     ],
-    benefits: [
-      "Solves piece grouping, fusing blocks, and alignment",
-      "Handles color shading and fabric defects",
-      "Visualize and validate plaid/check matching on-screen",
-      "Imposition and nesting for ready-to-print PDF or AI files",
-      "Saves fabric, transfer paper, ink, and time",
-      "Preserves color management info perfectly",
+    groups: [
+      {
+        label: "Capabilities",
+        items: [
+          "Solves piece grouping, fusing blocks, and alignment",
+          "Handles color shading and fabric defects",
+          "Visualize and validate plaid/check matching on-screen",
+          "Imposition and nesting for ready-to-print PDF or AI files",
+          "Saves fabric, transfer paper, ink, and time",
+          "Preserves color management info perfectly",
+        ],
+      },
     ],
   },
   {
@@ -134,13 +170,13 @@ const useCases = [
     icon: ImageIcon2,
     title: "Advertising & Packaging",
     description:
-      "Cutting a large feather flag on contour has never been easier. Using the total surface scan, VisionCUT® will extract the contour of shapes and generate a cut file on-the-fly, without need a pre-existing vector file. For precision cutting of small items, VisionCUT® can use matching points in a similar way to a classical head mounted camera, but without any limitation in increasing number of points that would slow-down the cutting process when using the old technology.",
+      "Cutting a large feather flag on contour has never been easier. Using the total surface scan, VisionCUT® will extract the contour of shapes and generate a cut file on-the-fly, without need a pre-existing vector file.",
   },
   {
     icon: Sofa,
     title: "Stripes & Plaids For Furniture And Garments",
     description:
-      "There are at least two significant advantages when cutting stripes and plaids with VisionCUT®: speed of process and capability to compensate bow & skew distortion by reshaping the cut parts to match perfectly the lines on the fabric. This is particularly useful when cutting large parts, for furniture or automotive upholstery or classical man suits.",
+      "There are at least two significant advantages when cutting stripes and plaids with VisionCUT®: speed of process and capability to compensate bow & skew distortion by reshaping the cut parts to match perfectly the lines on the fabric.",
   },
 ];
 
@@ -165,7 +201,6 @@ export default function CADPatternDesignPage() {
         ))}
       </section>
 
-      {/* VisionCUT use cases */}
       <section className="px-6 py-24 bg-white">
         <div className="max-w-6xl mx-auto">
           <motion.div

@@ -139,8 +139,11 @@ export default function ProductCard({
                     ))}
                   </div>
                 ) : (
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-black/40 mb-6">
-                    {tabs[0].label}
+                  <div className="inline-flex items-center gap-1.5 mb-8">
+                    <span className="relative pb-3 text-[13px] font-medium tracking-wide text-black">
+                      {tabs[0].label}
+                      <span className="absolute left-0 right-0 -bottom-px h-[1.5px] bg-red" />
+                    </span>
                   </div>
                 )}
 
@@ -148,14 +151,26 @@ export default function ProductCard({
                   {tab === "info" && moreInfo?.length ? (
                     <motion.div
                       key="info"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
+                      initial="hidden"
+                      animate="show"
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
+                      variants={{
+                        hidden: {},
+                        show: { transition: { staggerChildren: 0.05 } },
+                      }}
                       className="space-y-4 text-black/60 text-[14px] leading-relaxed max-w-xl"
                     >
                       {moreInfo.map((para, i) => (
-                        <p key={i}>{para}</p>
+                        <motion.p
+                          key={i}
+                          variants={{
+                            hidden: { opacity: 0, y: 10 },
+                            show: { opacity: 1, y: 0 },
+                          }}
+                          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                          {para}
+                        </motion.p>
                       ))}
                     </motion.div>
                   ) : null}

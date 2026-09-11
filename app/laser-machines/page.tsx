@@ -6,6 +6,27 @@ import CategoryHero from "@/components/CategoryHero";
 const products = [
   {
     brand: "SEI Laser",
+    name: "Flexi Denim",
+    tagline: "The digital laser machine for jeans and garments finishing",
+    description: [
+      "Specifically designed for denim and fabric garments finishing, it replaces traditional methods of discoloration, abrasion, decoration, marking, engraving and cutting.",
+    ],
+    groups: [
+      {
+        label: "Features",
+        items: [
+          "High quality: shading and natural used effects and very accurate and precise decorations are possible",
+          "Materials processable: denim and textiles (natural and synthetic)",
+          "Productivity up to three times higher than that possible with conventional machines",
+          "Optimisation of laser energy: guarantees a reduction of costs and consumption (thanks to less energy waste)",
+          "Simplicity of use thanks to user-friendly Icaro Denim software interface that halves set-up times. The operations are simple and immediate",
+          "Industry 4.0 Ready: full digital workflow integration",
+        ],
+      },
+    ],
+  },
+  {
+    brand: "SEI Laser",
     name: "Flexi Denim 2C",
     tagline: "The most flexible laser system of the Flexi Denim line.",
     description: [
@@ -112,7 +133,7 @@ export default function LaserMachinesPage() {
         ghostWord="LASER"
         description="Modern laser marking, finishing, and cutting technology for denim, garments, and sublimation fabrics."
         stats={[
-          { value: "5", label: "Systems" },
+          { value: "6", label: "Systems" },
           { value: "2", label: "Global Brands" },
           { value: "4x", label: "Productivity Gain" },
         ]}

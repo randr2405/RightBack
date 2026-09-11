@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, ArrowRight } from "lucide-react";
+import { ChevronDown, ArrowRight, Menu, X } from "lucide-react";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -50,6 +50,8 @@ const navItems = [
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,14 +64,27 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
   return (
     <header className="bg-cream border-b border-black/10 relative z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-        <Link href="/" className="text-xl font-bold text-black">
+        <Link
+          href="/"
+          onClick={() => setMobileOpen(false)}
+          className="text-xl font-bold text-black"
+        >
           RightBack <span className="text-red">Technology</span>
         </Link>
 
-        <nav ref={navRef} className="flex items-center gap-6">
+        {/* Desktop nav */}
+        <nav ref={navRef} className="hidden lg:flex items-center gap-6">
           {navItems.map((item) => (
             <div key={item.label} className="relative">
               {item.children ? (
@@ -152,7 +167,119 @@ export default function Header() {
             </div>
           ))}
         </nav>
+
+        {/* Mobile hamburger button */}
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="lg:hidden p-2 -mr-2 text-black"
+          aria-label="Open menu"
+        >
+          <Menu size={24} />
+        </button>
       </div>
+
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 bg-black/40 z-[60] lg:hidden"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 34 }}
+              className="fixed top-0 right-0 h-full w-[85%] max-w-sm bg-cream z-[70] overflow-y-auto lg:hidden"
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-black/10">
+                <span className="text-lg font-bold text-black">Menu</span>
+                <button
+                  type="button"
+                  onClick={() => setMobileOpen(false)}
+                  className="p-2 -mr-2 text-black"
+                  aria-label="Close menu"
+                >
+                  <X size={22} />
+                </button>
+              </div>
+
+              <div className="px-4 py-4">
+                {navItems.map((item) => (
+                  <div key={item.label} className="border-b border-black/5 last:border-b-0">
+                    {item.children ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setMobileExpanded(
+                              mobileExpanded === item.label ? null : item.label
+                            )
+                          }
+                          className="w-full flex items-center justify-between py-4 text-left text-[15px] font-medium text-black"
+                        >
+                          {item.label}
+                          <motion.span
+                            animate={{
+                              rotate: mobileExpanded === item.label ? 180 : 0,
+                            }}
+                            transition={{ duration: 0.25 }}
+                          >
+                            <ChevronDown size={16} className="text-black/40" />
+                          </motion.span>
+                        </button>
+                        <AnimatePresence>
+                          {mobileExpanded === item.label && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="pb-3 flex flex-col gap-1">
+                                {item.children.map((child) => (
+                                  <Link
+                                    key={child.href}
+                                    href={child.href}
+                                    onClick={() => setMobileOpen(false)}
+                                    className="rounded-xl px-4 py-3 bg-white/60 active:bg-white"
+                                  >
+                                    <div className="text-sm font-semibold text-black">
+                                      {child.label}
+                                    </div>
+                                    <div className="text-xs text-black/45 mt-0.5">
+                                      {child.desc}
+                                    </div>
+                                  </Link>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className="block py-4 text-[15px] font-medium text-black"
+                      >
+                        {item.label}
+                      </Link>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

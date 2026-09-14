@@ -50,6 +50,7 @@ const navItems = [
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -84,16 +85,32 @@ export default function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav ref={navRef} className="hidden lg:flex items-center gap-6">
+        <nav
+          ref={navRef}
+          onMouseLeave={() => setHoveredItem(null)}
+          className="hidden lg:flex items-center gap-1"
+        >
           {navItems.map((item) => (
-            <div key={item.label} className="relative">
+            <div
+              key={item.label}
+              className="relative"
+              onMouseEnter={() => setHoveredItem(item.label)}
+            >
+              {hoveredItem === item.label && (
+                <motion.span
+                  layoutId="nav-pill"
+                  className="absolute inset-0 rounded-full bg-black/[0.05]"
+                  transition={{ type: "spring", stiffness: 500, damping: 38 }}
+                />
+              )}
+
               {item.children ? (
                 <button
                   type="button"
                   onClick={() =>
                     setOpenMenu(openMenu === item.label ? null : item.label)
                   }
-                  className="flex items-center gap-1 text-sm font-medium text-black hover:text-red transition-colors py-2"
+                  className="relative flex items-center gap-1 text-sm font-medium text-black hover:text-red transition-colors py-2 px-4 rounded-full"
                 >
                   {item.label}
                   <motion.span
@@ -106,7 +123,7 @@ export default function Header() {
               ) : (
                 <Link
                   href={item.href}
-                  className="text-sm font-medium text-black hover:text-red transition-colors py-2 inline-block"
+                  className="relative text-sm font-medium text-black hover:text-red transition-colors py-2 px-4 rounded-full inline-block"
                 >
                   {item.label}
                 </Link>

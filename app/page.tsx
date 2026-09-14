@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, MouseEvent, ReactNode } from "react";
 import Footer from "@/components/Footer";
 import AnimatedCounter from "@/components/AnimatedCounter";
 
@@ -72,6 +72,79 @@ const stagger = {
   },
 } as const;
 
+/** React Bits-style cursor-tracking spotlight glow, inlined locally for this page. */
+function SpotlightCard({
+  children,
+  className = "",
+  spotlightColor = "rgba(220, 38, 38, 0.12)",
+}: {
+  children: ReactNode;
+  className?: string;
+  spotlightColor?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [opacity, setOpacity] = useState(0);
+
+  function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    setPos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setOpacity(1)}
+      onMouseLeave={() => setOpacity(0)}
+      className={`relative overflow-hidden ${className}`}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 transition-opacity duration-500"
+        style={{
+          opacity,
+          background: `radial-gradient(500px circle at ${pos.x}% ${pos.y}%, ${spotlightColor}, transparent 65%)`,
+        }}
+      />
+      <div className="relative z-10 h-full">{children}</div>
+    </motion.div>
+  );
+}
+
+/** React Bits-style animated dot-grid background, inlined locally for this page. */
+function DotGrid({ className = "" }: { className?: string }) {
+  return (
+    <div className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}>
+      <svg className="absolute inset-0 w-full h-full opacity-[0.35]">
+        <defs>
+          <pattern id="dot-grid-pattern" width="28" height="28" patternUnits="userSpaceOnUse">
+            <circle cx="1.5" cy="1.5" r="1.5" fill="currentColor" className="text-black/15" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#dot-grid-pattern)" />
+      </svg>
+
+      <motion.div
+        animate={{
+          background: [
+            "radial-gradient(600px circle at 20% 30%, rgba(220,38,38,0.10), transparent 60%)",
+            "radial-gradient(600px circle at 80% 60%, rgba(220,38,38,0.10), transparent 60%)",
+            "radial-gradient(600px circle at 20% 30%, rgba(220,38,38,0.10), transparent 60%)",
+          ],
+        }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute inset-0"
+      />
+
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neutral-100" />
+    </div>
+  );
+}
+
 export default function Home() {
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -92,8 +165,11 @@ export default function Home() {
       >
         <motion.div
           style={{ y: heroY, scale: heroScale }}
-          className="absolute inset-0 bg-gradient-to-br from-red/10 via-neutral-100 to-neutral-100"
-        />
+          className="absolute inset-0"
+        >
+          <DotGrid />
+        </motion.div>
+
         <motion.div style={{ opacity: heroOpacity }} className="relative">
           <motion.h1
             initial={{ opacity: 0, y: 40 }}
@@ -101,7 +177,18 @@ export default function Home() {
             transition={{ duration: 0.9, ease: "easeOut" }}
             className="text-5xl sm:text-7xl font-bold leading-tight max-w-4xl mx-auto text-black"
           >
-            Advanced Garment Manufacturing Solutions
+            Advanced Garment{" "}
+            <motion.span
+              className="bg-clip-text text-transparent bg-[length:200%_auto]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(90deg, #1a1a1a 0%, #dc2626 25%, #1a1a1a 50%, #dc2626 75%, #1a1a1a 100%)",
+              }}
+              animate={{ backgroundPosition: ["0% 50%", "200% 50%"] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            >
+              Manufacturing Solutions
+            </motion.span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 30 }}
@@ -216,17 +303,18 @@ export default function Home() {
               variants={fadeUp}
               whileHover={{ y: -10, scale: 1.03 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="bg-white rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:shadow-xl border border-black/5 hover:border-red/40 transition-all duration-300"
             >
-              <div>
-                <h3 className="text-lg font-semibold mb-3 text-black">
-                  {item.title}
-                </h3>
-                <p className="text-black/70 text-sm">{item.description}</p>
-              </div>
-              <span className="mt-6 inline-block text-red text-sm font-medium cursor-pointer">
-                Learn more →
-              </span>
+              <SpotlightCard className="bg-white rounded-2xl p-6 h-full flex flex-col justify-between shadow-sm hover:shadow-xl border border-black/5 hover:border-red/40 transition-all duration-300">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 text-black">
+                    {item.title}
+                  </h3>
+                  <p className="text-black/70 text-sm">{item.description}</p>
+                </div>
+                <span className="mt-6 inline-block text-red text-sm font-medium cursor-pointer">
+                  Learn more →
+                </span>
+              </SpotlightCard>
             </motion.div>
           ))}
         </motion.div>
@@ -262,14 +350,14 @@ export default function Home() {
           className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {whyChoose.map((item) => (
-            <motion.div
-              key={item.title}
-              variants={fadeUp}
-              whileHover={{ y: -8 }}
-              className="bg-neutral-100 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow duration-300 text-center"
-            >
-              <h3 className="font-semibold text-black mb-3">{item.title}</h3>
-              <p className="text-black/70 text-sm">{item.description}</p>
+            <motion.div key={item.title} variants={fadeUp} whileHover={{ y: -8 }}>
+              <SpotlightCard
+                spotlightColor="rgba(220, 38, 38, 0.08)"
+                className="bg-neutral-100 rounded-2xl p-6 h-full shadow-sm hover:shadow-lg transition-shadow duration-300 text-center"
+              >
+                <h3 className="font-semibold text-black mb-3">{item.title}</h3>
+                <p className="text-black/70 text-sm">{item.description}</p>
+              </SpotlightCard>
             </motion.div>
           ))}
         </motion.div>
@@ -308,8 +396,10 @@ export default function Home() {
             whileInView={{ opacity: 1, x: 0, rotate: 0 }}
             viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="bg-white rounded-2xl h-64 md:h-96 shadow-sm border border-black/5"
-          />
+            className="relative bg-white rounded-2xl h-64 md:h-96 shadow-sm border border-black/5 overflow-hidden"
+          >
+            <DotGrid />
+          </motion.div>
         </div>
       </section>
 

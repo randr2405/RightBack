@@ -75,7 +75,7 @@ export default function Header() {
 
   return (
     <header className="bg-cream border-b border-black/10 relative z-50">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <div className="max-w-[100rem] mx-auto flex items-center justify-between gap-6 px-6 py-4">
         <Link
           href="/"
           onClick={() => setMobileOpen(false)}
@@ -88,7 +88,7 @@ export default function Header() {
         <nav
           ref={navRef}
           onMouseLeave={() => setHoveredItem(null)}
-          className="hidden lg:flex items-center gap-1"
+          className="hidden lg:flex items-center gap-0.5 whitespace-nowrap"
         >
           {navItems.map((item) => (
             <div
@@ -110,7 +110,7 @@ export default function Header() {
                   onClick={() =>
                     setOpenMenu(openMenu === item.label ? null : item.label)
                   }
-                  className="relative flex items-center gap-1 text-sm font-medium text-black hover:text-red transition-colors py-2 px-4 rounded-full"
+                  className="relative flex items-center gap-1 text-sm font-medium text-black hover:text-red transition-colors py-2 px-3 rounded-full whitespace-nowrap"
                 >
                   {item.label}
                   <motion.span
@@ -123,7 +123,7 @@ export default function Header() {
               ) : (
                 <Link
                   href={item.href}
-                  className="relative text-sm font-medium text-black hover:text-red transition-colors py-2 px-4 rounded-full inline-block"
+                  className="relative text-sm font-medium text-black hover:text-red transition-colors py-2 px-3 rounded-full inline-block whitespace-nowrap"
                 >
                   {item.label}
                 </Link>

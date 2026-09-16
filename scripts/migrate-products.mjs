@@ -1,10 +1,3 @@
-// One-time migration script: pushes all existing hardcoded product data
-// into the Supabase `products` table.
-//
-// Run with:  node scripts/migrate-products.mjs
-//
-// Requires SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_URL to be
-// set in .env.local (the service role key bypasses RLS so it can write).
 
 import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";

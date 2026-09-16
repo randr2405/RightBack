@@ -1,30 +1,34 @@
-﻿"use client";
-
-import ProductCard from "@/components/ProductCard";
+﻿import ProductCard from "@/components/ProductCard";
 import CategoryHero from "@/components/CategoryHero";
+import { supabase } from "@/lib/supabase";
 
-const products = [
-  {
-    brand: "Cutting",
-    name: "ECON-1209",
-    tagline: "Versatile sample cutting for garments, patterns, and rigid plates",
-    description: [
-      "A flexible sample cutting machine built to handle fabric, pattern, and clean-plate cutting across a wide range of materials — from Kraft paper and cardboard to PVC, ABS, and steel-backed board.",
-    ],
-    groups: [
-      {
-        label: "Features",
-        items: [
-          "Cutting sample garment — cutting all kinds of fabrics with DRT, optional EOT cutting composites",
-          "Cutting pattern — uses DRT to cut pattern materials such as white cardboard and Kraft paper; optional EOT cuts pattern materials like white cardboard and Kraft paper; optional UCT cuts white cardboard, Kraft paper, and 5mm cardboard and other materials",
-          "Cut the clean plate — shaped plate, wrap ironing plate; DRT cuts 0.5mm yellow plate (Epoxy resin board), 1.0mm PVC and other materials; optional UCT cuts 0.5mm yellow plate (Epoxy resin plate), 1.0mm PVC, etc.; optional EOT cuts 0.5mm yellow plate (Epoxy resin plate), 1.5mm PVC, 1.5mm ABS, 1.5mm steel cardboard, 5mm middle bottom plate and 5mm cardboard etc.",
-        ],
-      },
-    ],
-  },
-];
+export const revalidate = 60;
 
-export default function SampleCuttingMachinePage() {
+type DbProduct = {
+  id: string;
+  brand: string;
+  name: string;
+  tagline: string | null;
+  description: string[];
+  more_info: string[];
+  groups: { label: string; items: string[] }[];
+  specs: { label: string; value: string }[];
+  image_url: string | null;
+};
+
+export default async function SampleCuttingMachinePage() {
+  const { data: products, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("category", "cutting/sample-cutting-machine")
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("Failed to load Sample Cutting Machine products:", error.message);
+  }
+
+  const list = (products ?? []) as DbProduct[];
+
   return (
     <div className="bg-neutral-100 flex-1">
       <CategoryHero
@@ -33,14 +37,25 @@ export default function SampleCuttingMachinePage() {
         ghostWord="SAMPLE"
         description="Precision sample cutting for garments, patterns, and rigid plate materials — one machine, multiple cutting modes."
         stats={[
-          { value: "1", label: "System" },
+          { value: String(list.length), label: "System" },
           { value: "3", label: "Cutting Modes" },
         ]}
       />
 
       <section>
-        {products.map((product, i) => (
-          <ProductCard key={product.name} index={i + 1} {...product} />
+        {list.map((product, i) => (
+          <ProductCard
+            key={product.id}
+            index={i + 1}
+            brand={product.brand}
+            name={product.name}
+            tagline={product.tagline ?? ""}
+            description={product.description}
+            moreInfo={product.more_info}
+            groups={product.groups}
+            specs={product.specs}
+            imageSrc={product.image_url ?? undefined}
+          />
         ))}
       </section>
     </div>

@@ -330,6 +330,21 @@ function ProductEditor({
             />
           </Field>
 
+          <Field label="Image URL">
+            <input
+              value={form.image_url ?? ""}
+              onChange={(e) => update("image_url", e.target.value || null)}
+              placeholder="https://..."
+              className={inputClass}
+            />
+            {form.image_url && (
+              <div className="mt-3 w-24 h-24 rounded-lg overflow-hidden border border-black/10 bg-neutral-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.image_url} alt="" className="w-full h-full object-cover" />
+              </div>
+            )}
+          </Field>
+
           <RepeatableTextList
             label="Description"
             items={form.description}

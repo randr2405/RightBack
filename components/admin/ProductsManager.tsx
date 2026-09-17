@@ -218,6 +218,7 @@ function ProductEditor({
   onDelete?: () => void;
 }) {
   const [form, setForm] = useState<Product>(product);
+  const [uploading, setUploading] = useState(false);
 
   function update<K extends keyof Product>(key: K, value: Product[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -330,19 +331,53 @@ function ProductEditor({
             />
           </Field>
 
-          <Field label="Image URL">
-            <input
-              value={form.image_url ?? ""}
-              onChange={(e) => update("image_url", e.target.value || null)}
-              placeholder="https://..."
-              className={inputClass}
-            />
-            {form.image_url && (
-              <div className="mt-3 w-24 h-24 rounded-lg overflow-hidden border border-black/10 bg-neutral-50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={form.image_url} alt="" className="w-full h-full object-cover" />
+          <Field label="Image">
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-lg overflow-hidden border border-black/10 bg-neutral-50 shrink-0 flex items-center justify-center">
+                {form.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={form.image_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[10px] text-black/30">No image</span>
+                )}
               </div>
-            )}
+              <div className="flex-1 space-y-2">
+                <label className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full border border-red text-xs font-medium text-black hover:bg-red hover:text-white cursor-pointer transition-all">
+                  {uploading ? "Uploading…" : "Upload photo"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setUploading(true);
+                      const body = new FormData();
+                      body.append("file", file);
+                      const res = await fetch("/api/admin/upload", {
+                        method: "POST",
+                        body,
+                      });
+                      const data = await res.json();
+                      setUploading(false);
+                      if (res.ok) {
+                        update("image_url", data.url);
+                      } else {
+                        alert(`Upload failed: ${data.error ?? "unknown error"}`);
+                      }
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                <input
+                  value={form.image_url ?? ""}
+                  onChange={(e) => update("image_url", e.target.value || null)}
+                  placeholder="or paste an image URL"
+                  className={`${inputClass} text-xs`}
+                />
+              </div>
+            </div>
           </Field>
 
           <RepeatableTextList

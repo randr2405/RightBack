@@ -16,7 +16,9 @@ import {
   Images,
   Trash2,
   X,
+  Package,
 } from "lucide-react";
+import ProductsManager from "@/components/admin/ProductsManager";
 
 // TEMPORARY client-side gate — replace with real auth (e.g. NextAuth, Clerk,
 // or a server-checked session) before this goes live.
@@ -48,6 +50,7 @@ const defaultSettings: SiteSettings = {
 
 const navSections = [
   { key: "general", label: "General", icon: LayoutDashboard },
+  { key: "products", label: "Products", icon: Package },
   { key: "branding", label: "Branding", icon: Palette },
   { key: "media", label: "Media Library", icon: Images },
   { key: "contact", label: "Contact Info", icon: Phone },
@@ -249,6 +252,9 @@ export default function AdminPage() {
             </p>
           </div>
 
+          {activeSection === "products" ? (
+            <ProductsManager />
+          ) : (
           <form
             onSubmit={handleSave}
             className="bg-white rounded-2xl border border-black/10 shadow-sm p-8 space-y-8"
@@ -501,6 +507,7 @@ export default function AdminPage() {
               </AnimatePresence>
             </div>
           </form>
+          )}
         </div>
       </div>
 

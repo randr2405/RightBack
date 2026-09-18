@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -21,6 +21,7 @@ import {
 import ProductsManager from "@/components/admin/ProductsManager";
 
 type SiteSettings = {
+  id: string | null;
   companyName: string;
   tagline: string;
   logoUrl: string | null;
@@ -33,6 +34,7 @@ type SiteSettings = {
 };
 
 const defaultSettings: SiteSettings = {
+  id: null,
   companyName: "RightBack Technology",
   tagline: "Precision machinery. Smarter production. Reliable performance.",
   logoUrl: null,
@@ -66,12 +68,39 @@ export default function AdminDashboard() {
 
   const [activeSection, setActiveSection] = useState<SectionKey>("general");
   const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+  const [logoUploading, setLogoUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [lightboxItem, setLightboxItem] = useState<MediaItem | null>(null);
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  async function loadSettings() {
+    setLoadingSettings(true);
+    const res = await fetch("/api/admin/site-settings");
+    const data = await res.json();
+    if (res.ok && data.settings) {
+      const s = data.settings;
+      setSettings({
+        id: s.id,
+        companyName: s.company_name ?? "",
+        tagline: s.tagline ?? "",
+        logoUrl: s.logo_url ?? null,
+        email: s.email ?? "",
+        phone: s.phone ?? "",
+        address: s.address ?? "",
+        facebook: s.facebook ?? "",
+        instagram: s.instagram ?? "",
+        linkedin: s.linkedin ?? "",
+      });
+    }
+    setLoadingSettings(false);
+  }
 
   async function handleLogout() {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -99,11 +128,21 @@ export default function AdminDashboard() {
     setSettings((s) => ({ ...s, [key]: value }));
   }
 
-  function handleLogoChange(e: ChangeEvent<HTMLInputElement>) {
+  async function handleLogoChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setLogoPreview(url);
+    setLogoUploading(true);
+    const body = new FormData();
+    body.append("file", file);
+    const res = await fetch("/api/admin/upload", { method: "POST", body });
+    const data = await res.json();
+    setLogoUploading(false);
+    if (res.ok) {
+      update("logoUrl", data.url);
+    } else {
+      alert(`Logo upload failed: ${data.error ?? "unknown error"}`);
+    }
+    e.target.value = "";
   }
 
   async function handleSave(e: FormEvent) {
@@ -111,13 +150,32 @@ export default function AdminDashboard() {
     setSaving(true);
     setSaved(false);
 
-    // TODO: replace with a real API call to persist site_settings.
-    await new Promise((r) => setTimeout(r, 600));
-    console.log("Saving site settings (placeholder):", settings);
+    const res = await fetch("/api/admin/site-settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: settings.id,
+        company_name: settings.companyName,
+        tagline: settings.tagline,
+        logo_url: settings.logoUrl,
+        email: settings.email,
+        phone: settings.phone,
+        address: settings.address,
+        facebook: settings.facebook,
+        instagram: settings.instagram,
+        linkedin: settings.linkedin,
+      }),
+    });
 
     setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+
+    if (res.ok) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } else {
+      const err = await res.json();
+      alert(`Failed to save: ${err.error ?? "unknown error"}`);
+    }
   }
 
   return (
@@ -184,6 +242,8 @@ export default function AdminDashboard() {
 
           {activeSection === "products" ? (
             <ProductsManager />
+          ) : loadingSettings ? (
+            <div className="text-black/40 text-sm py-10 text-center">Loading settings…</div>
           ) : (
           <form
             onSubmit={handleSave}
@@ -231,9 +291,9 @@ export default function AdminDashboard() {
                   </label>
                   <div className="flex items-center gap-5">
                     <div className="w-20 h-20 rounded-xl bg-neutral-100 border border-black/10 flex items-center justify-center overflow-hidden shrink-0">
-                      {logoPreview ? (
+                      {settings.logoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
+                        <img src={settings.logoUrl} alt="Logo preview" className="w-full h-full object-contain" />
                       ) : (
                         <ImageIcon size={22} className="text-black/20" strokeWidth={1.5} />
                       )}
@@ -244,12 +304,13 @@ export default function AdminDashboard() {
                         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-red text-sm font-medium text-black hover:bg-red hover:text-white cursor-pointer transition-all duration-300"
                       >
                         <Upload size={14} />
-                        Upload new logo
+                        {logoUploading ? "Uploading…" : "Upload new logo"}
                       </label>
                       <input
                         id="logo-upload"
                         type="file"
                         accept="image/*"
+                        disabled={logoUploading}
                         onChange={handleLogoChange}
                         className="hidden"
                       />

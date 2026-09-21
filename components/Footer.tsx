@@ -1,7 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
+import { useSiteSettings } from "@/components/SiteSettingsProvider";
 
 export default function Footer() {
+  const { companyName, tagline } = useSiteSettings();
+  const [firstWord, ...rest] = companyName.split(" ");
+  const restOfName = rest.join(" ");
+
   return (
     <footer className="bg-neutral-100 text-black mt-auto">
       <div className="max-w-7xl mx-auto px-6 py-20">
@@ -9,8 +16,8 @@ export default function Footer() {
           {/* Brand block */}
           <div className="md:col-span-5">
             <h3 className="text-3xl font-bold tracking-tight">
-              RightBack
-              <span className="block text-red">Technology</span>
+              {firstWord}
+              {restOfName && <span className="block text-red">{restOfName}</span>}
             </h3>
             <p className="mt-4 text-black/60 text-sm leading-relaxed max-w-xs">
               Advanced garment manufacturing technology and solutions for
@@ -82,9 +89,9 @@ export default function Footer() {
 
       <div className="border-t border-black/10">
         <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-black/50">
-          <span>© {new Date().getFullYear()} RightBack Technology. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} {companyName}. All rights reserved.</span>
           <span className="flex items-center gap-1">
-            Precision machinery. Smarter production.
+            {tagline.split(".")[0]}.
             <span className="text-red">●</span>
           </span>
         </div>

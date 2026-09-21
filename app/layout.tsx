@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "@/components/Header";
+import { SiteSettingsProvider } from "@/components/SiteSettingsProvider";
+import { supabase } from "@/lib/supabase";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,15 +20,35 @@ export const metadata: Metadata = {
   description: "Advanced garment manufacturing solutions.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+async function getSiteSettings() {
+  const { data } = await supabase
+    .from("site_settings")
+    .select("company_name, tagline, logo_url")
+    .limit(1)
+    .single();
+
+  return {
+    companyName: data?.company_name ?? "RightBack Technology",
+    tagline:
+      data?.tagline ??
+      "Precision machinery. Smarter production. Reliable performance.",
+    logoUrl: data?.logo_url ?? null,
+  };
+}
+
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const settings = await getSiteSettings();
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Header />
-        {children}
+        <SiteSettingsProvider value={settings}>
+          <Header />
+          {children}
+        </SiteSettingsProvider>
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ArrowRight, Menu, X } from "lucide-react";
+import { useSiteSettings } from "@/components/SiteSettingsProvider";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -49,6 +50,10 @@ const navItems = [
 ];
 
 export default function Header() {
+  const { companyName, logoUrl } = useSiteSettings();
+  const [firstWord, ...rest] = companyName.split(" ");
+  const restOfName = rest.join(" ");
+
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -79,9 +84,13 @@ export default function Header() {
         <Link
           href="/"
           onClick={() => setMobileOpen(false)}
-          className="text-xl font-bold text-black"
+          className="flex items-center gap-2.5 text-xl font-bold text-black"
         >
-          RightBack <span className="text-red">Technology</span>
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt={companyName} className="h-8 w-auto object-contain" />
+          ) : null}
+          {firstWord} {restOfName && <span className="text-red">{restOfName}</span>}
         </Link>
 
         {/* Desktop nav */}

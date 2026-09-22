@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Mail, MapPin, Phone, Zap } from "lucide-react";
+import { useSiteSettings } from "@/components/SiteSettingsProvider";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -19,6 +20,8 @@ const fieldVariant = {
 } as const;
 
 export default function ContactPage() {
+  const { phones, emails, address } = useSiteSettings();
+
   return (
     <div className="bg-neutral-100 flex-1 relative overflow-hidden">
       {/* Decorative background blobs */}
@@ -183,52 +186,49 @@ export default function ContactPage() {
               <h3 className="text-xs font-semibold uppercase tracking-wider text-black/40 mb-5">
                 Contact
               </h3>
-              <div className="flex items-start gap-3 text-sm text-black/70 mb-6">
-                <Phone size={16} className="mt-0.5 shrink-0 text-red" />
-                <div className="space-y-1">
-                  <div>+27 83 648 0733</div>
-                  <div>+27 78 511 1866</div>
-                  <div>+27 78 511 2043</div>
-                  <div>+27 83 655 3985</div>
+              {phones.length > 0 && (
+                <div className="flex items-start gap-3 text-sm text-black/70 mb-6">
+                  <Phone size={16} className="mt-0.5 shrink-0 text-red" />
+                  <div className="space-y-1">
+                    {phones.map((phone) => (
+                      <div key={phone}>{phone}</div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start gap-3 text-sm text-black/70">
-                <Mail size={16} className="mt-0.5 shrink-0 text-red" />
-                <div className="space-y-1">
-                  <a href="mailto:sales@rightback.co.za" className="block hover:text-red transition-colors">
-                    sales@rightback.co.za
-                  </a>
-                  <a href="mailto:akesh@rightback.co.za" className="block hover:text-red transition-colors">
-                    akesh@rightback.co.za
-                  </a>
-                  <a href="mailto:vivian@rightback.co.za" className="block hover:text-red transition-colors">
-                    vivian@rightback.co.za
-                  </a>
+              )}
+              {emails.length > 0 && (
+                <div className="flex items-start gap-3 text-sm text-black/70">
+                  <Mail size={16} className="mt-0.5 shrink-0 text-red" />
+                  <div className="space-y-1">
+                    {emails.map((email) => (
+                      
+                        key={email}
+                        href={`mailto:${email}`}
+                        className="block hover:text-red transition-colors"
+                      >
+                        {email}
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </motion.div>
 
-            <motion.div
-              variants={fieldVariant}
-              whileHover={{ y: -4 }}
-              className="bg-white rounded-2xl shadow-sm hover:shadow-lg border border-black/5 p-8 transition-shadow duration-300"
-            >
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-black/40 mb-5">
-                Visit us
-              </h3>
-              <div className="flex items-start gap-3 text-sm text-black/70 leading-relaxed">
-                <MapPin size={16} className="mt-0.5 shrink-0 text-red" />
-                <p>
-                  15 Sucrose Crescent,
-                  <br />
-                  B 12A Old Mill Business Park
-                  <br />
-                  Mount Edgecombe, Durban,
-                  <br />
-                  South Africa
-                </p>
-              </div>
-            </motion.div>
+            {address && (
+              <motion.div
+                variants={fieldVariant}
+                whileHover={{ y: -4 }}
+                className="bg-white rounded-2xl shadow-sm hover:shadow-lg border border-black/5 p-8 transition-shadow duration-300"
+              >
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-black/40 mb-5">
+                  Visit us
+                </h3>
+                <div className="flex items-start gap-3 text-sm text-black/70 leading-relaxed">
+                  <MapPin size={16} className="mt-0.5 shrink-0 text-red" />
+                  <p>{address}</p>
+                </div>
+              </motion.div>
+            )}
 
             <motion.div
               variants={fieldVariant}

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 async function getSiteSettings() {
   const { data } = await supabase
     .from("site_settings")
-    .select("company_name, tagline, logo_url")
+    .select("company_name, tagline, logo_url, phones, emails, address, facebook, instagram, linkedin")
     .limit(1)
     .single();
 
@@ -33,6 +33,12 @@ async function getSiteSettings() {
       data?.tagline ??
       "Precision machinery. Smarter production. Reliable performance.",
     logoUrl: data?.logo_url ?? null,
+    phones: (data?.phones as string[]) ?? [],
+    emails: (data?.emails as string[]) ?? [],
+    address: data?.address ?? "",
+    facebook: data?.facebook ?? "",
+    instagram: data?.instagram ?? "",
+    linkedin: data?.linkedin ?? "",
   };
 }
 

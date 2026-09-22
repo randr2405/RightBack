@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone, Facebook, Instagram, Linkedin } from "lucide-react";
 import { useSiteSettings } from "@/components/SiteSettingsProvider";
 
 export default function Footer() {
-  const { companyName, tagline } = useSiteSettings();
+  const { companyName, tagline, phones, emails, address, facebook, instagram, linkedin } =
+    useSiteSettings();
   const [firstWord, ...rest] = companyName.split(" ");
   const restOfName = rest.join(" ");
+
+  const hasSocials = facebook || instagram || linkedin;
 
   return (
     <footer className="bg-neutral-100 text-black mt-auto">
@@ -32,6 +35,41 @@ export default function Footer() {
                 →
               </span>
             </Link>
+
+            {hasSocials && (
+              <div className="flex items-center gap-3 mt-6">
+                {facebook && (
+                  
+                    href={facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full border border-black/10 flex items-center justify-center text-black/60 hover:text-red hover:border-red/40 transition-colors"
+                  >
+                    <Facebook size={15} />
+                  </a>
+                )}
+                {instagram && (
+                  
+                    href={instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full border border-black/10 flex items-center justify-center text-black/60 hover:text-red hover:border-red/40 transition-colors"
+                  >
+                    <Instagram size={15} />
+                  </a>
+                )}
+                {linkedin && (
+                  
+                    href={linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full border border-black/10 flex items-center justify-center text-black/60 hover:text-red hover:border-red/40 transition-colors"
+                  >
+                    <Linkedin size={15} />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Contact block */}
@@ -40,50 +78,47 @@ export default function Footer() {
               Contact
             </h4>
             <ul className="space-y-3 text-sm text-black/70">
-              <li className="flex items-start gap-3">
-                <Phone size={16} className="mt-0.5 shrink-0 text-red" />
-                <div className="space-y-1">
-                  <div>+27 83 648 0733</div>
-                  <div>+27 78 511 1866</div>
-                  <div>+27 78 511 2043</div>
-                  <div>+27 83 655 3985</div>
-                </div>
-              </li>
-              <li className="flex items-start gap-3 pt-2">
-                <Mail size={16} className="mt-0.5 shrink-0 text-red" />
-                <div className="space-y-1">
-                  <a href="mailto:sales@rightback.co.za" className="block hover:text-red transition-colors">
-                    sales@rightback.co.za
-                  </a>
-                  <a href="mailto:akesh@rightback.co.za" className="block hover:text-red transition-colors">
-                    akesh@rightback.co.za
-                  </a>
-                  <a href="mailto:vivian@rightback.co.za" className="block hover:text-red transition-colors">
-                    vivian@rightback.co.za
-                  </a>
-                </div>
-              </li>
+              {phones.length > 0 && (
+                <li className="flex items-start gap-3">
+                  <Phone size={16} className="mt-0.5 shrink-0 text-red" />
+                  <div className="space-y-1">
+                    {phones.map((phone) => (
+                      <div key={phone}>{phone}</div>
+                    ))}
+                  </div>
+                </li>
+              )}
+              {emails.length > 0 && (
+                <li className="flex items-start gap-3 pt-2">
+                  <Mail size={16} className="mt-0.5 shrink-0 text-red" />
+                  <div className="space-y-1">
+                    {emails.map((email) => (
+                      
+                        key={email}
+                        href={`mailto:${email}`}
+                        className="block hover:text-red transition-colors"
+                      >
+                        {email}
+                      </a>
+                    ))}
+                  </div>
+                </li>
+              )}
             </ul>
           </div>
 
           {/* Visit block */}
-          <div className="md:col-span-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-black/40 mb-5">
-              Visit us
-            </h4>
-            <div className="flex items-start gap-3 text-sm text-black/70 leading-relaxed">
-              <MapPin size={16} className="mt-0.5 shrink-0 text-red" />
-              <p>
-                15 Sucrose Crescent,
-                <br />
-                B 12A Old Mill Business Park
-                <br />
-                Mount Edgecombe, Durban,
-                <br />
-                South Africa
-              </p>
+          {address && (
+            <div className="md:col-span-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-black/40 mb-5">
+                Visit us
+              </h4>
+              <div className="flex items-start gap-3 text-sm text-black/70 leading-relaxed">
+                <MapPin size={16} className="mt-0.5 shrink-0 text-red" />
+                <p>{address}</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

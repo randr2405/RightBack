@@ -17,6 +17,7 @@ import {
   Trash2,
   X,
   Package,
+  Plus,
 } from "lucide-react";
 import ProductsManager from "@/components/admin/ProductsManager";
 
@@ -25,8 +26,8 @@ type SiteSettings = {
   companyName: string;
   tagline: string;
   logoUrl: string | null;
-  email: string;
-  phone: string;
+  phones: string[];
+  emails: string[];
   address: string;
   facebook: string;
   instagram: string;
@@ -38,8 +39,8 @@ const defaultSettings: SiteSettings = {
   companyName: "RightBack Technology",
   tagline: "Precision machinery. Smarter production. Reliable performance.",
   logoUrl: null,
-  email: "info@rightback.co.za",
-  phone: "",
+  phones: [],
+  emails: [],
   address: "",
   facebook: "",
   instagram: "",
@@ -91,8 +92,8 @@ export default function AdminDashboard() {
         companyName: s.company_name ?? "",
         tagline: s.tagline ?? "",
         logoUrl: s.logo_url ?? null,
-        email: s.email ?? "",
-        phone: s.phone ?? "",
+        phones: s.phones ?? [],
+        emails: s.emails ?? [],
         address: s.address ?? "",
         facebook: s.facebook ?? "",
         instagram: s.instagram ?? "",
@@ -158,8 +159,8 @@ export default function AdminDashboard() {
         company_name: settings.companyName,
         tagline: settings.tagline,
         logo_url: settings.logoUrl,
-        email: settings.email,
-        phone: settings.phone,
+        phones: settings.phones,
+        emails: settings.emails,
         address: settings.address,
         facebook: settings.facebook,
         instagram: settings.instagram,
@@ -407,22 +408,42 @@ export default function AdminDashboard() {
                   transition={{ duration: 0.2 }}
                   className="space-y-8"
                 >
-                  <Field label="Email">
-                    <input
-                      type="email"
-                      value={settings.email}
-                      onChange={(e) => update("email", e.target.value)}
-                      className={inputClass}
-                    />
-                  </Field>
-                  <Field label="Phone">
-                    <input
-                      type="tel"
-                      value={settings.phone}
-                      onChange={(e) => update("phone", e.target.value)}
-                      className={inputClass}
-                    />
-                  </Field>
+                  <RepeatableInputList
+                    label="Phone Numbers"
+                    items={settings.phones}
+                    placeholder="+27 ..."
+                    onChange={(i, v) => {
+                      const next = [...settings.phones];
+                      next[i] = v;
+                      update("phones", next);
+                    }}
+                    onAdd={() => update("phones", [...settings.phones, ""])}
+                    onRemove={(i) =>
+                      update(
+                        "phones",
+                        settings.phones.filter((_, idx) => idx !== i)
+                      )
+                    }
+                  />
+
+                  <RepeatableInputList
+                    label="Email Addresses"
+                    items={settings.emails}
+                    placeholder="name@rightback.co.za"
+                    onChange={(i, v) => {
+                      const next = [...settings.emails];
+                      next[i] = v;
+                      update("emails", next);
+                    }}
+                    onAdd={() => update("emails", [...settings.emails, ""])}
+                    onRemove={(i) =>
+                      update(
+                        "emails",
+                        settings.emails.filter((_, idx) => idx !== i)
+                      )
+                    }
+                  />
+
                   <Field label="Address">
                     <input
                       type="text"
@@ -563,6 +584,59 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div>
       <label className="block text-sm font-semibold text-black mb-2">{label}</label>
       {children}
+    </div>
+  );
+}
+
+function RepeatableInputList({
+  label,
+  items,
+  placeholder,
+  onChange,
+  onAdd,
+  onRemove,
+}: {
+  label: string;
+  items: string[];
+  placeholder?: string;
+  onChange: (index: number, value: string) => void;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <label className="text-sm font-semibold text-black">{label}</label>
+        <button
+          type="button"
+          onClick={onAdd}
+          className="text-xs font-medium text-red hover:text-black flex items-center gap-1"
+        >
+          <Plus size={12} /> Add
+        </button>
+      </div>
+      <div className="space-y-2">
+        {items.map((item, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <input
+              value={item}
+              onChange={(e) => onChange(i, e.target.value)}
+              placeholder={placeholder}
+              className={`${inputClass} flex-1`}
+            />
+            <button
+              type="button"
+              onClick={() => onRemove(i)}
+              className="p-2 text-black/20 hover:text-red shrink-0"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        ))}
+        {items.length === 0 && (
+          <p className="text-xs text-black/30 italic">None added yet.</p>
+        )}
+      </div>
     </div>
   );
 }

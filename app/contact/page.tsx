@@ -201,9 +201,9 @@ export default function ContactPage() {
                   <Mail size={16} className="mt-0.5 shrink-0 text-red" />
                   <div className="space-y-1">
                     {emails.map((email) => (
-                      
+                      <a
                         key={email}
-                        href={`mailto:${email}`}
+                        href={"mailto:" + email}
                         className="block hover:text-red transition-colors"
                       >
                         {email}

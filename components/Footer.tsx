@@ -32,14 +32,14 @@ export default function Footer() {
             >
               Get in touch
               <span className="inline-block transition-transform group-hover:translate-x-1">
-                →
+                {"\u2192"}
               </span>
             </Link>
 
             {hasSocials && (
               <div className="flex items-center gap-3 mt-6">
                 {facebook && (
-                  
+                  <a
                     href={facebook}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -49,7 +49,7 @@ export default function Footer() {
                   </a>
                 )}
                 {instagram && (
-                  
+                  <a
                     href={instagram}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -59,7 +59,7 @@ export default function Footer() {
                   </a>
                 )}
                 {linkedin && (
-                  
+                  <a
                     href={linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -93,9 +93,9 @@ export default function Footer() {
                   <Mail size={16} className="mt-0.5 shrink-0 text-red" />
                   <div className="space-y-1">
                     {emails.map((email) => (
-                      
+                      <a
                         key={email}
-                        href={`mailto:${email}`}
+                        href={"mailto:" + email}
                         className="block hover:text-red transition-colors"
                       >
                         {email}
@@ -124,10 +124,13 @@ export default function Footer() {
 
       <div className="border-t border-black/10">
         <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-black/50">
-          <span>© {new Date().getFullYear()} {companyName}. All rights reserved.</span>
+          <span>
+            {"\u00A9 "}
+            {new Date().getFullYear()} {companyName}. All rights reserved.
+          </span>
           <span className="flex items-center gap-1">
             {tagline.split(".")[0]}.
-            <span className="text-red">●</span>
+            <span className="text-red">{"\u25CF"}</span>
           </span>
         </div>
       </div>

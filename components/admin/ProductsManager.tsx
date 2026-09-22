@@ -220,6 +220,16 @@ function ProductEditor({
   const [form, setForm] = useState<Product>(product);
   const [uploading, setUploading] = useState(false);
 
+  const isDirty = JSON.stringify(form) !== JSON.stringify(product);
+
+  function handleClose() {
+    if (isDirty) {
+      const confirmed = confirm("You have unsaved changes. Discard them?");
+      if (!confirmed) return;
+    }
+    onClose();
+  }
+
   function update<K extends keyof Product>(key: K, value: Product[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
@@ -287,7 +297,7 @@ function ProductEditor({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 sm:p-8"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <motion.div
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
@@ -300,7 +310,7 @@ function ProductEditor({
           <h2 className="text-lg font-semibold text-black">
             {form.id ? "Edit Product" : "New Product"}
           </h2>
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-neutral-100">
+          <button onClick={handleClose} className="p-1.5 rounded-full hover:bg-neutral-100">
             <X size={18} />
           </button>
         </div>
@@ -465,7 +475,7 @@ function ProductEditor({
           )}
           <div className="flex items-center gap-3">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2.5 rounded-full text-sm font-medium text-black/60 hover:bg-neutral-100"
             >
               Cancel

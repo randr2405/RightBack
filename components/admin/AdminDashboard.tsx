@@ -61,10 +61,32 @@ export default function AdminDashboard() {
 
   const [activeSection, setActiveSection] = useState<SectionKey>("general");
   const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
+  const [savedSettings, setSavedSettings] = useState<SiteSettings>(defaultSettings);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [logoUploading, setLogoUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const isDirty = JSON.stringify(settings) !== JSON.stringify(savedSettings);
+
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (isDirty) {
+        e.preventDefault();
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
+
+  function handleSectionChange(key: SectionKey) {
+    if (isDirty && activeSection !== "products" && key !== activeSection) {
+      const confirmed = confirm("You have unsaved changes. Leave without saving?");
+      if (!confirmed) return;
+      setSettings(savedSettings);
+    }
+    setActiveSection(key);
+  }
 
   useEffect(() => {
     loadSettings();
@@ -76,7 +98,7 @@ export default function AdminDashboard() {
     const data = await res.json();
     if (res.ok && data.settings) {
       const s = data.settings;
-      setSettings({
+      const loaded = {
         id: s.id,
         companyName: s.company_name ?? "",
         tagline: s.tagline ?? "",
@@ -87,7 +109,9 @@ export default function AdminDashboard() {
         facebook: s.facebook ?? "",
         instagram: s.instagram ?? "",
         linkedin: s.linkedin ?? "",
-      });
+      };
+      setSettings(loaded);
+      setSavedSettings(loaded);
     }
     setLoadingSettings(false);
   }
@@ -144,6 +168,7 @@ export default function AdminDashboard() {
     setSaving(false);
 
     if (res.ok) {
+      setSavedSettings(settings);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } else {
@@ -169,7 +194,7 @@ export default function AdminDashboard() {
             return (
               <button
                 key={section.key}
-                onClick={() => setActiveSection(section.key)}
+                onClick={() => handleSectionChange(section.key)}
                 className="relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors"
                 style={{ color: isActive ? "#1A1A1A" : "#1A1A1A80" }}
               >
@@ -182,6 +207,9 @@ export default function AdminDashboard() {
                 )}
                 <Icon size={16} className="relative z-10" />
                 <span className="relative z-10">{section.label}</span>
+                {isActive && isDirty && activeSection !== "products" && (
+                  <span className="relative z-10 ml-auto w-1.5 h-1.5 rounded-full bg-red" />
+                )}
               </button>
             );
           })}
@@ -189,7 +217,13 @@ export default function AdminDashboard() {
 
         <div className="px-3 py-4 border-t border-black/10">
           <button
-            onClick={handleLogout}
+            onClick={() => {
+              if (isDirty && activeSection !== "products") {
+                const confirmed = confirm("You have unsaved changes. Log out anyway?");
+                if (!confirmed) return;
+              }
+              handleLogout();
+            }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-black/50 hover:text-red hover:bg-white transition-colors"
           >
             <LogOut size={16} />

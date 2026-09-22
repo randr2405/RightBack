@@ -13,7 +13,6 @@ import {
   Share2,
   Settings as SettingsIcon,
   LogOut,
-  Images,
   Trash2,
   X,
   Package,
@@ -51,16 +50,9 @@ const navSections = [
   { key: "general", label: "General", icon: LayoutDashboard },
   { key: "products", label: "Products", icon: Package },
   { key: "branding", label: "Branding", icon: Palette },
-  { key: "media", label: "Media Library", icon: Images },
   { key: "contact", label: "Contact Info", icon: Phone },
   { key: "social", label: "Social Links", icon: Share2 },
 ] as const;
-
-type MediaItem = {
-  id: string;
-  url: string;
-  name: string;
-};
 
 type SectionKey = (typeof navSections)[number]["key"];
 
@@ -73,9 +65,6 @@ export default function AdminDashboard() {
   const [logoUploading, setLogoUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
-  const [lightboxItem, setLightboxItem] = useState<MediaItem | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -107,22 +96,6 @@ export default function AdminDashboard() {
     await fetch("/api/admin/logout", { method: "POST" });
     router.push("/admin/login");
     router.refresh();
-  }
-
-  function handleMediaUpload(e: ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files;
-    if (!files) return;
-    const newItems: MediaItem[] = Array.from(files).map((file) => ({
-      id: `${file.name}-${Date.now()}-${Math.random()}`,
-      url: URL.createObjectURL(file),
-      name: file.name,
-    }));
-    setMediaItems((items) => [...newItems, ...items]);
-    e.target.value = "";
-  }
-
-  function handleMediaDelete(id: string) {
-    setMediaItems((items) => items.filter((item) => item.id !== id));
   }
 
   function update<K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) {
@@ -323,82 +296,6 @@ export default function AdminDashboard() {
                 </motion.div>
               )}
 
-              {activeSection === "media" && (
-                <motion.div
-                  key="media"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <div className="flex items-center justify-between mb-5">
-                    <div>
-                      <label className="block text-sm font-semibold text-black">
-                        Product & Site Photos
-                      </label>
-                      <p className="text-xs text-black/40 mt-1">
-                        Upload photos here, then assign them to a product or page.
-                      </p>
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="media-upload"
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-red text-sm font-medium text-black hover:bg-red hover:text-white cursor-pointer transition-all duration-300 whitespace-nowrap"
-                      >
-                        <Upload size={14} />
-                        Upload photos
-                      </label>
-                      <input
-                        id="media-upload"
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleMediaUpload}
-                        className="hidden"
-                      />
-                    </div>
-                  </div>
-
-                  {mediaItems.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-black/15 py-14 flex flex-col items-center justify-center gap-2 text-black/30">
-                      <Images size={28} strokeWidth={1.5} />
-                      <span className="text-sm">No photos uploaded yet</span>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                      {mediaItems.map((item) => (
-                        <motion.div
-                          key={item.id}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.9 }}
-                          className="group relative aspect-square rounded-xl overflow-hidden bg-neutral-100 border border-black/10 cursor-pointer"
-                          onClick={() => setLightboxItem(item)}
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={item.url}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors" />
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMediaDelete(item.id);
-                            }}
-                            className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red hover:text-white"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-              )}
-
               {activeSection === "contact" && (
                 <motion.div
                   key="contact"
@@ -522,56 +419,6 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
-
-      {/* Lightbox */}
-      <AnimatePresence>
-        {lightboxItem && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setLightboxItem(null)}
-            className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl overflow-hidden max-w-lg w-full"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={lightboxItem.url}
-                alt={lightboxItem.name}
-                className="w-full max-h-[60vh] object-contain bg-neutral-100"
-              />
-              <div className="flex items-center justify-between px-5 py-4">
-                <span className="text-sm text-black/60 truncate">
-                  {lightboxItem.name}
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      handleMediaDelete(lightboxItem.id);
-                      setLightboxItem(null);
-                    }}
-                    className="p-2 rounded-full hover:bg-red hover:text-white transition-colors text-black/50"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                  <button
-                    onClick={() => setLightboxItem(null)}
-                    className="p-2 rounded-full hover:bg-neutral-100 transition-colors text-black/50"
-                  >
-                    <X size={15} />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

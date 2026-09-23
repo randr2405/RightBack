@@ -3257,13 +3257,41 @@ const industriesReveal = [
 
 function IndustriesFront() {
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-[#1A1A1A] px-8 text-center overflow-hidden">
+    <div className="relative w-full h-full flex items-center justify-center text-center overflow-hidden">
+      <AeroShards
+        backgroundColor="#1A1A1A"
+        shardColor="#DC2626"
+        accentColor="#EF4444"
+        placement="full"
+        flow="stream"
+        material="pearl"
+        detail="balanced"
+        effect="none"
+        scale={1}
+        spread={1}
+        depth={1}
+        speed={0.8}
+        spin={1}
+        interaction="repel"
+        density={1.2}
+        shardSize={1.05}
+        stretch={1}
+        turbulence={0.9}
+        glow={1}
+        edgeSoftness={2}
+        bloom={0.5}
+        grain={0.05}
+        chromaticAberration={0.0075}
+        transitionDuration={1}
+        interactionRadius={1.5}
+        interactionStrength={0.5}
+        rippleIntensity={1}
+        holdToGather
+        paused={false}
+      />
       <div
-        className="absolute inset-0 opacity-60"
-        style={{
-          background:
-            "radial-gradient(120% 100% at 15% 15%, rgba(220,38,38,0.35), transparent 55%), radial-gradient(120% 100% at 85% 85%, rgba(239,68,68,0.25), transparent 55%)",
-        }}
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(60% 55% at 50% 45%, rgba(0,0,0,0.28), transparent 70%)" }}
       />
       <div className="relative z-10">
         <p className="text-red font-semibold tracking-wide uppercase text-xs mb-3">Hover to explore</p>

@@ -2948,7 +2948,7 @@ export default function Home() {
   fontUrl=""
   font="bold 30px Orbitron"
   scrollSpeed={2}
-  autoplaySpeed={0.015}
+  autoplaySpeed={0.05}
 />
         </div>
       </section>

@@ -3681,38 +3681,14 @@ export default function Home() {
         </motion.div>
       </section>
 
-      <section className="px-6 py-28 bg-neutral-100 overflow-hidden">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-stretch">
+           <section className="px-6 py-28 bg-neutral-100 overflow-hidden">
+        <div className="max-w-6xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, x: -60 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col justify-center"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-black mb-6">Industries We Serve</h2>
-            <ul className="space-y-3 text-black/80 text-lg">
-              {industries.map((industry, i) => (
-                <motion.li
-                  key={industry}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="flex items-start gap-3"
-                >
-                  <span className="text-red mt-1.5">●</span>
-                  {industry}
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: 60, rotate: -2 }}
-            whileInView={{ opacity: 1, x: 0, rotate: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative rounded-2xl min-h-[22rem] md:min-h-full overflow-hidden"
+            className="relative rounded-2xl h-[26rem] md:h-[32rem] overflow-hidden"
           >
             <PixelSwap
               firstContent={<IndustriesFront />}

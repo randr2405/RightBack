@@ -81,28 +81,27 @@ const stagger = {
   show: { transition: { staggerChildren: 0.08 } },
 } as const;
 
-/** Corner-bracket frame — the recurring nameplate motif used on the hero and CTA. */
-function CornerBrackets({ dark = false }: { dark?: boolean }) {
-  const stroke = dark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.2)";
-  const corners = [
-    "top-0 left-0",
-    "top-0 right-0 rotate-90",
-    "bottom-0 right-0 rotate-180",
-    "bottom-0 left-0 -rotate-90",
-  ];
+/** Infinite horizontal marquee — used for the industries strip. */
+function Marquee({ items }: { items: string[] }) {
+  const loop = [...items, ...items];
   return (
-    <>
-      {corners.map((pos) => (
-        <svg
-          key={pos}
-          className={`pointer-events-none absolute h-6 w-6 sm:h-9 sm:w-9 ${pos}`}
-          viewBox="0 0 36 36"
-          fill="none"
-        >
-          <path d="M2 14V2H14" stroke={stroke} strokeWidth="1.5" />
-        </svg>
-      ))}
-    </>
+    <div className="relative overflow-hidden border-y border-white/15 py-5">
+      <motion.div
+        className="flex gap-10 whitespace-nowrap"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration: 26, repeat: Infinity, ease: "linear" }}
+      >
+        {loop.map((item, i) => (
+          <span
+            key={`${item}-${i}`}
+            className="flex items-center gap-10 text-lg sm:text-2xl font-semibold text-white/80"
+          >
+            {item}
+            <span className="text-red">✕</span>
+          </span>
+        ))}
+      </motion.div>
+    </div>
   );
 }
 
@@ -113,263 +112,246 @@ export default function Home() {
     offset: ["start start", "end start"],
   });
 
-  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.3]);
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "22%"]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.25]);
+  const panelSkew = useTransform(scrollYProgress, [0, 1], [0, 6]);
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden bg-neutral-100">
-      {/* Hero — engineering spec-plate treatment */}
-      <section
-        ref={heroRef}
-        className="relative bg-neutral-100 text-black px-6 pt-28 pb-20 sm:pt-36 sm:pb-28"
-      >
+      {/* Hero — oversized type on black, diagonal red panel */}
+      <section ref={heroRef} className="relative bg-black text-white overflow-hidden">
+        <motion.div
+          style={{ skewY: panelSkew }}
+          className="absolute -right-1/4 -top-1/3 w-[90%] h-[160%] bg-red origin-top-right"
+        />
+        <motion.div
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+
         <motion.div
           style={{ y: heroY, opacity: heroOpacity }}
-          className="relative max-w-6xl mx-auto"
+          className="relative px-6 pt-32 pb-20 sm:pt-44 sm:pb-28"
         >
-          <div className="relative border border-black/15 px-6 py-14 sm:px-16 sm:py-20">
-            <CornerBrackets />
-
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={stagger}
+            className="max-w-6xl mx-auto"
+          >
             <motion.div
-              initial="hidden"
-              animate="show"
-              variants={stagger}
-              className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 items-end"
+              variants={fadeUp}
+              className="font-mono text-xs sm:text-sm text-white/50 mb-8 tracking-wide"
             >
-              <div>
-                <motion.div
-                  variants={fadeUp}
-                  className="flex items-center gap-3 text-sm text-black/50 font-mono mb-6"
-                >
-                  <span>REF. 001</span>
-                  <span className="h-px w-10 bg-black/20" />
-                  <span>GARMENT MANUFACTURING EQUIPMENT</span>
-                </motion.div>
+              RIGHTBACK / GARMENT MANUFACTURING EQUIPMENT
+            </motion.div>
 
-                <motion.h1
-                  variants={fadeUp}
-                  className="text-5xl sm:text-7xl font-bold leading-[1.02] tracking-tight max-w-3xl"
-                >
-                  Advanced garment
-                  <br />
-                  manufacturing
-                  <br />
-                  <span className="text-red">solutions.</span>
-                </motion.h1>
+            <motion.h1
+              variants={fadeUp}
+              className="font-black leading-[0.88] tracking-tight text-[15vw] sm:text-[9rem] lg:text-[10.5rem]"
+            >
+              GARMENT
+              <br />
+              TECH<span className="text-red">.</span>
+            </motion.h1>
 
-                <motion.p
-                  variants={fadeUp}
-                  className="mt-8 text-lg sm:text-xl text-black/70 max-w-md"
-                >
-                  Precision machinery. Smarter production. Reliable
-                  performance.
-                </motion.p>
-              </div>
+            <div className="mt-10 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-8 items-end max-w-5xl">
+              <motion.p
+                variants={fadeUp}
+                className="text-xl sm:text-3xl font-medium text-white/85 max-w-xl"
+              >
+                Precision machinery. Smarter production.
+                <br />
+                Reliable performance.
+              </motion.p>
 
               <motion.div variants={fadeUp}>
                 <Link
                   href="/contact"
-                  className="inline-flex items-center gap-3 px-8 py-4 bg-black text-white text-base rounded-none hover:bg-red transition-colors duration-300"
+                  className="inline-flex items-center gap-3 px-9 py-5 bg-white text-black text-lg font-semibold hover:bg-red hover:text-white transition-colors duration-300"
                 >
-                  Explore our solutions
+                  Explore our solutions →
                 </Link>
               </motion.div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </motion.div>
+
+        <Marquee items={industries} />
       </section>
 
-      {/* Intro blurb */}
-      <motion.section
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.4 }}
-        variants={fadeUp}
-        className="bg-neutral-100 px-6 pb-24"
-      >
-        <p className="max-w-2xl mx-auto text-black/70 text-lg sm:text-xl border-l-2 border-red pl-6">
-          Rightback supplies world-class apparel manufacturing technology to
-          factories across Southern Africa. From sewing and automation to
-          cutting, finishing, printing, and digital systems, we help
-          manufacturers increase efficiency, quality, and output,{" "}
-          <span className="font-semibold text-black">without compromise.</span>
-        </p>
-      </motion.section>
-
-      {/* Stats — spec-strip, not cards */}
-      <section className="bg-black text-white px-6 py-16">
-        <motion.div
+      {/* Intro — huge watermark numeral behind the pull quote */}
+      <section className="relative bg-neutral-100 px-6 py-28 sm:py-36 overflow-hidden">
+        <span className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 text-[40vw] sm:text-[24rem] font-black leading-none text-black/[0.04] select-none">
+          20+
+        </span>
+        <motion.p
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.4 }}
-          variants={stagger}
-          className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-4 divide-x divide-white/15"
+          variants={fadeUp}
+          className="relative max-w-3xl mx-auto text-black text-3xl sm:text-5xl font-bold leading-tight tracking-tight text-center"
         >
-          {stats.map((s) => (
-            <motion.div key={s.label} variants={fadeUp} className="px-4 sm:px-8 first:pl-0 font-mono">
-              <AnimatedCounter value={s.value} suffix={s.suffix} label={s.label} />
-            </motion.div>
-          ))}
-        </motion.div>
+          We supply world-class apparel manufacturing technology to
+          factories across Southern Africa —{" "}
+          <span className="text-red">without compromise.</span>
+        </motion.p>
       </section>
 
-      {/* Proven machinery */}
-      <motion.section
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.3 }}
-        variants={fadeUp}
-        className="bg-neutral-100 px-6 py-24"
-      >
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            Proven, production-ready machinery
-          </h2>
-          <p className="mt-5 text-black/70 text-lg">
-            For over two decades, Rightback has partnered with leading global
-            manufacturers to deliver proven, production-ready machinery to
-            the garment, denim, and textile industries. We don&apos;t just
-            sell machines, we provide complete production solutions, backed
-            by technical expertise, trusted brands, and long-term support.
-          </p>
-        </div>
-      </motion.section>
+      {/* Stats — asymmetric black/red blocks */}
+      <section className="grid grid-cols-2 lg:grid-cols-4">
+        {stats.map((s, i) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.5, delay: i * 0.08 }}
+            className={`px-6 py-16 sm:py-20 flex flex-col justify-end ${
+              i % 2 === 0 ? "bg-black text-white" : "bg-red text-white"
+            }`}
+          >
+            <div className="font-black text-5xl sm:text-6xl leading-none">
+              <AnimatedCounter value={s.value} suffix={s.suffix} label="" />
+            </div>
+            <p className="mt-3 text-sm sm:text-base text-white/70">{s.label}</p>
+          </motion.div>
+        ))}
+      </section>
 
-      {/* What we do — numbered production-line index (numbering reflects the actual line sequence) */}
-      <section className="bg-white px-6 py-28">
-        <div className="max-w-5xl mx-auto">
+      {/* What we do — full-bleed alternating panels, huge index numerals */}
+      <section className="bg-neutral-100">
+        <div className="px-6 py-20 max-w-5xl mx-auto">
           <motion.div
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.3 }}
             variants={fadeUp}
-            className="mb-16 max-w-xl"
           >
-            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight">
+            <p className="text-red font-semibold text-sm mb-3">What we do</p>
+            <h2 className="text-4xl sm:text-6xl font-black tracking-tight max-w-2xl">
               Complete apparel production solutions
             </h2>
-            <p className="mt-4 text-black/70 text-lg">
-              End-to-end equipment for every stage of garment manufacturing,
-              helping you streamline operations and stay competitive in a
-              fast-moving industry.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.1 }}
-            variants={stagger}
-            className="border-t border-black/10"
-          >
-            {whatWeDo.map((item) => (
-              <motion.div
-                key={item.title}
-                variants={fadeUp}
-                className="group grid grid-cols-1 sm:grid-cols-[80px_1fr_1.2fr] gap-4 sm:gap-8 py-8 border-b border-black/10 items-baseline"
-              >
-                <span className="font-mono text-black/30 text-sm">
-                  {item.index}
-                </span>
-                <h3 className="text-xl font-semibold group-hover:text-red transition-colors duration-300">
-                  {item.title}
-                </h3>
-                <p className="text-black/60 text-base max-w-md">
-                  {item.description}
-                </p>
-              </motion.div>
-            ))}
           </motion.div>
         </div>
-      </section>
 
-      {/* Why choose us — two-column labeled list */}
-      <section className="bg-neutral-100 px-6 py-28">
-        <div className="max-w-5xl mx-auto">
-          <motion.h2
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            className="text-3xl sm:text-5xl font-bold tracking-tight mb-16 max-w-xl"
-          >
-            Why manufacturers choose Rightback
-          </motion.h2>
-
+        {whatWeDo.map((item, i) => (
           <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.15 }}
-            variants={stagger}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-12"
+            key={item.title}
+            initial={{ opacity: 0, x: i % 2 === 0 ? -40 : 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className={`relative overflow-hidden ${
+              i % 2 === 0 ? "bg-white text-black" : "bg-black text-white"
+            }`}
           >
-            {whyChoose.map((item) => (
-              <motion.div
-                key={item.title}
-                variants={fadeUp}
-                className="border-l-2 border-black/10 pl-6"
+            <span
+              className={`pointer-events-none absolute -right-4 sm:right-4 top-1/2 -translate-y-1/2 text-[10rem] sm:text-[14rem] font-black leading-none select-none ${
+                i % 2 === 0 ? "text-black/[0.05]" : "text-white/[0.06]"
+              }`}
+            >
+              {item.index}
+            </span>
+            <div className="relative max-w-5xl mx-auto px-6 py-16 sm:py-20 grid grid-cols-1 sm:grid-cols-[1fr_1.1fr] gap-6 sm:gap-16">
+              <h3 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                {item.title}
+              </h3>
+              <p
+                className={`text-lg self-center ${
+                  i % 2 === 0 ? "text-black/65" : "text-white/65"
+                }`}
               >
-                <h3 className="font-semibold text-black mb-2 text-lg">
-                  {item.title}
-                </h3>
-                <p className="text-black/60 text-base">{item.description}</p>
-              </motion.div>
-            ))}
+                {item.description}
+              </p>
+            </div>
           </motion.div>
-        </div>
+        ))}
       </section>
 
-      {/* Industries we serve — inline tag row */}
-      <section className="px-6 py-24 bg-white">
+      {/* Why choose us — bold offset grid */}
+      <section className="bg-neutral-100 px-6 py-28 sm:py-36">
+        <motion.h2
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          variants={fadeUp}
+          className="text-4xl sm:text-6xl font-black tracking-tight mb-16 max-w-2xl mx-auto text-center"
+        >
+          Why manufacturers choose Rightback
+        </motion.h2>
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.15 }}
+          variants={stagger}
+          className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6"
+        >
+          {whyChoose.map((item, i) => (
+            <motion.div
+              key={item.title}
+              variants={fadeUp}
+              className={`p-8 sm:p-10 ${
+                i === 0
+                  ? "bg-black text-white sm:translate-y-6"
+                  : i === 3
+                  ? "bg-red text-white sm:-translate-y-6"
+                  : "bg-white text-black"
+              }`}
+            >
+              <h3 className="font-bold text-xl sm:text-2xl mb-3 tracking-tight">
+                {item.title}
+              </h3>
+              <p
+                className={
+                  i === 0 || i === 3 ? "text-white/70" : "text-black/60"
+                }
+              >
+                {item.description}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* CTA — huge diagonal red close */}
+      <section className="relative bg-black text-white px-6 py-32 sm:py-44 overflow-hidden">
+        <motion.div
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true, amount: 0.6 }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
+          className="absolute -left-1/4 top-0 w-[85%] h-full bg-red -skew-x-6 origin-left"
+        />
         <motion.div
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.4 }}
           variants={fadeUp}
-          className="max-w-5xl mx-auto"
+          className="relative max-w-4xl mx-auto text-center"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-8">
-            Industries we serve
+          <h2 className="text-4xl sm:text-7xl font-black tracking-tight leading-[0.95]">
+            Power your production
+            <br />
+            with smarter technology
           </h2>
-          <div className="flex flex-wrap gap-3">
-            {industries.map((industry) => (
-              <span
-                key={industry}
-                className="px-4 py-2 border border-black/15 text-black/70 text-sm"
-              >
-                {industry}
-              </span>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* CTA — inverted nameplate, echoes the hero */}
-      <motion.section
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.4 }}
-        variants={fadeUp}
-        className="bg-black text-white px-6 py-24"
-      >
-        <div className="relative max-w-4xl mx-auto border border-white/15 px-6 py-16 sm:px-16 sm:py-20 text-center">
-          <CornerBrackets dark />
-          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight max-w-2xl mx-auto">
-            Power your production with smarter technology
-          </h2>
-          <p className="mt-6 max-w-xl mx-auto text-white/60 text-lg">
+          <p className="mt-8 max-w-xl mx-auto text-white/60 text-lg">
             Whether you&apos;re expanding capacity, improving efficiency, or
             investing in automation, Rightback has the technology, and the
             expertise, to support your growth.
           </p>
           <Link
             href="/contact"
-            className="inline-flex items-center gap-3 mt-10 px-8 py-4 bg-red text-white text-base hover:bg-white hover:text-black transition-colors duration-300"
+            className="inline-flex items-center gap-3 mt-10 px-10 py-5 bg-white text-black text-lg font-semibold hover:bg-red hover:text-white transition-colors duration-300"
           >
-            Contact us
+            Contact us →
           </Link>
-        </div>
-      </motion.section>
+        </motion.div>
+      </section>
 
       <Footer />
     </div>

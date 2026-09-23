@@ -3190,6 +3190,7 @@ function PixelSwap({
         .pixel-swap {
           position: relative;
           width: 100%;
+          height: 100%;
           overflow: hidden;
           isolation: isolate;
           outline: none;
@@ -3256,10 +3257,17 @@ const industriesReveal = [
 
 function IndustriesFront() {
   return (
-    <div className="w-full h-full flex items-center justify-center bg-white px-8 text-center">
-      <div>
+    <div className="relative w-full h-full flex items-center justify-center bg-[#1A1A1A] px-8 text-center overflow-hidden">
+      <div
+        className="absolute inset-0 opacity-60"
+        style={{
+          background:
+            "radial-gradient(120% 100% at 15% 15%, rgba(220,38,38,0.35), transparent 55%), radial-gradient(120% 100% at 85% 85%, rgba(239,68,68,0.25), transparent 55%)",
+        }}
+      />
+      <div className="relative z-10">
         <p className="text-red font-semibold tracking-wide uppercase text-xs mb-3">Hover to explore</p>
-        <p className="text-2xl sm:text-3xl font-bold text-black leading-snug">
+        <p className="text-2xl sm:text-4xl font-bold text-white leading-snug">
           5 Industries.
           <br />
           One Standard.
@@ -3271,7 +3279,7 @@ function IndustriesFront() {
 
 function IndustriesBack() {
   return (
-    <div className="w-full h-full bg-[#1A1A1A] p-8 flex flex-col justify-center gap-4">
+    <div className="w-full h-full bg-[#1A1A1A] p-8 md:p-10 flex flex-col justify-center gap-5">
       {industriesReveal.map(({ label, icon: Icon }) => (
         <div key={label} className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red/10 text-red">
@@ -3646,12 +3654,13 @@ export default function Home() {
       </section>
 
       <section className="px-6 py-28 bg-neutral-100 overflow-hidden">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-stretch">
           <motion.div
             initial={{ opacity: 0, x: -60 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
+            className="flex flex-col justify-center"
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-black mb-6">Industries We Serve</h2>
             <ul className="space-y-3 text-black/80 text-lg">
@@ -3675,7 +3684,7 @@ export default function Home() {
             whileInView={{ opacity: 1, x: 0, rotate: 0 }}
             viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative rounded-2xl h-64 md:h-96 shadow-sm border border-black/5 overflow-hidden"
+            className="relative rounded-2xl min-h-[22rem] md:min-h-full overflow-hidden"
           >
             <PixelSwap
               firstContent={<IndustriesFront />}
@@ -3687,7 +3696,7 @@ export default function Home() {
               duration={900}
               pixelDuration={350}
               aspectRatio="auto"
-              style={{ height: "100%", width: "100%" }}
+              style={{ position: "absolute", inset: 0, height: "100%", width: "100%" }}
             />
           </motion.div>
         </div>

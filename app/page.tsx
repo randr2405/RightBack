@@ -2805,6 +2805,71 @@ function ScrollStack({
   );
 }
 
+function IconGlobe({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3c2.5 2.7 3.8 6 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-6-3.8-9s1.3-6.3 3.8-9Z" />
+    </svg>
+  );
+}
+
+function IconGear({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="3.25" />
+      <path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.9-1.5-2-3.4-2.2.9a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.5 2.5a7.6 7.6 0 0 0-2.6 1.5l-2.2-.9-2 3.4 1.9 1.5a7.6 7.6 0 0 0 0 3l-1.9 1.5 2 3.4 2.2-.9c.77.65 1.65 1.16 2.6 1.5l.5 2.5h4l.5-2.5a7.6 7.6 0 0 0 2.6-1.5l2.2.9 2-3.4-1.9-1.5Z" />
+    </svg>
+  );
+}
+
+function IconHeadset({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M4 13v-1a8 8 0 0 1 16 0v1" />
+      <rect x="3" y="13" width="4" height="6" rx="1.3" />
+      <rect x="17" y="13" width="4" height="6" rx="1.3" />
+      <path d="M19 19v1a3 3 0 0 1-3 3h-3" />
+    </svg>
+  );
+}
+
+function IconChip({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="7" y="7" width="10" height="10" rx="1.5" />
+      <path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3" />
+    </svg>
+  );
+}
+
+const whyChoose = [
+  {
+    title: "Global Technology, Local Expertise",
+    description:
+      "We partner with leading international manufacturers and combine that with on-the-ground industry knowledge.",
+    icon: IconGlobe,
+  },
+  {
+    title: "Production-Proven Equipment",
+    description: "Every machine we supply is selected for reliability, performance, and long-term value.",
+    icon: IconGear,
+  },
+  {
+    title: "End-to-End Support",
+    description:
+      "From consultation and installation to training and after-sales service, we support you at every stage.",
+    icon: IconHeadset,
+  },
+  {
+    title: "Built for Modern Manufacturing",
+    description:
+      "Many of our systems are Industry 4.0 ready, enabling smarter production, monitoring, and data-driven decision-making.",
+    icon: IconChip,
+  },
+];
+
 const whatWeDo = [
   {
     title: "Sewing & Specialised Automation",
@@ -2835,28 +2900,6 @@ const whatWeDo = [
     description:
       "Advanced machinery purpose-built for efficient, high-precision denim and jeans production.",
     image: "/whatwedo/DJT.png",
-  },
-];
-
-const whyChoose = [
-  {
-    title: "Global Technology, Local Expertise",
-    description:
-      "We partner with leading international manufacturers and combine that with on-the-ground industry knowledge.",
-  },
-  {
-    title: "Production-Proven Equipment",
-    description: "Every machine we supply is selected for reliability, performance, and long-term value.",
-  },
-  {
-    title: "End-to-End Support",
-    description:
-      "From consultation and installation to training and after-sales service, we support you at every stage.",
-  },
-  {
-    title: "Built for Modern Manufacturing",
-    description:
-      "Many of our systems are Industry 4.0 ready, enabling smarter production, monitoring, and data-driven decision-making.",
   },
 ];
 
@@ -3151,6 +3194,9 @@ export default function Home() {
                 spotlightColor="rgba(220, 38, 38, 0.08)"
                 className="bg-neutral-100 rounded-2xl p-6 h-full shadow-sm hover:shadow-lg transition-shadow duration-300 text-center"
               >
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red/10 text-red">
+                  <item.icon className="h-6 w-6" />
+                </div>
                 <h3 className="font-semibold text-black mb-3">{item.title}</h3>
                 <p className="text-black/70 text-sm">{item.description}</p>
               </SpotlightCard>

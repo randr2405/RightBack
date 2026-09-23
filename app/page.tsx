@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import Link from "next/link";
@@ -2586,14 +2585,14 @@ function ScrollStackItem({ children, itemClassName = "" }) {
 function ScrollStack({
   children,
   className = "",
-  itemDistance = 100,
+  itemDistance = 64,
   itemScale = 0.03,
-  itemStackDistance = 30,
+  itemStackDistance = 18,
   stackPosition = "20%",
   scaleEndPosition = "10%",
-  baseScale = 0.85,
+  baseScale = 0.92,
   rotationAmount = 0,
-    blurAmount = 0,
+  blurAmount = 0,
   onStackComplete,
 }) {
   const scrollerRef = useRef(null);
@@ -2619,7 +2618,6 @@ function ScrollStack({
     return parseFloat(value);
   }, []);
 
-  // Reads layout ONCE (mount + resize) instead of every scroll frame.
   const measure = useCallback(() => {
     offsetsRef.current = cardsRef.current.map((card) => {
       const prevTransform = card.style.transform;
@@ -2650,14 +2648,14 @@ function ScrollStack({
       const triggerStart = cardTop - stackPositionPx - itemStackDistance * i;
       const triggerEnd = cardTop - scaleEndPositionPx;
       const pinStart = cardTop - stackPositionPx - itemStackDistance * i;
-      const pinEnd = endElementTop - containerHeight / 2;
+      const pinEnd = endElementTop - containerHeight * 0.85;
 
       const scaleProgress = calculateProgress(scrollTop, triggerStart, triggerEnd);
       const targetScale = baseScale + i * itemScale;
       const scale = 1 - scaleProgress * (1 - targetScale);
       const rotation = rotationAmount ? i * rotationAmount * scaleProgress : 0;
 
-           let blur = 0;
+      let blur = 0;
       if (blurAmount) {
         let topCardIndex = 0;
         for (let j = 0; j < cardsRef.current.length; j++) {
@@ -2709,7 +2707,7 @@ function ScrollStack({
     });
 
     isUpdatingRef.current = false;
-   }, [
+  }, [
     itemScale,
     itemStackDistance,
     stackPosition,
@@ -2764,7 +2762,7 @@ function ScrollStack({
     animationFrameRef.current = requestAnimationFrame(raf);
     lenisRef.current = lenis;
 
-      measure();
+    measure();
     updateCardTransforms();
 
     const handleResize = () => {
@@ -2773,7 +2771,7 @@ function ScrollStack({
     };
     window.addEventListener("resize", handleResize);
 
-       return () => {
+    return () => {
       window.removeEventListener("resize", handleResize);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (lenisRef.current) lenisRef.current.destroy();
@@ -3089,7 +3087,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-neutral-100 px-6 pt-28 pb-0">
+      <section className="bg-neutral-100 px-6 pt-28 pb-40">
         <motion.div
           initial="hidden"
           whileInView="show"
@@ -3109,8 +3107,8 @@ export default function Home() {
           {whatWeDo.map((item) => (
             <ScrollStackItem key={item.title}>
               <div className="bg-[#1A1A1A] rounded-3xl overflow-hidden h-full flex flex-col md:flex-row shadow-2xl max-h-[420px] md:max-h-[380px]">
-                <div className="md:w-1/2 h-48 md:h-auto">
-                  <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                <div className="md:w-1/2 h-48 md:h-auto bg-black/30 flex items-center justify-center">
+                  <img src={item.image} alt={item.title} className="w-full h-full object-contain p-6" />
                 </div>
                 <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center text-white">
                   <h3 className="text-2xl md:text-3xl font-bold mb-4">{item.title}</h3>

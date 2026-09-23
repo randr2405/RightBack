@@ -2256,23 +2256,28 @@ class CGMedia {
           return length(max(d, vec2(0.0))) + min(max(d.x, d.y), 0.0) - r;
         }
         
-        void main() {
-          vec2 ratio = vec2(
-            min((uPlaneSizes.x / uPlaneSizes.y) / (uImageSizes.x / uImageSizes.y), 1.0),
-            min((uPlaneSizes.y / uPlaneSizes.x) / (uImageSizes.y / uImageSizes.x), 1.0)
-          );
-          vec2 uv = vec2(
-            vUv.x * ratio.x + (1.0 - ratio.x) * 0.5,
-            vUv.y * ratio.y + (1.0 - ratio.y) * 0.5
-          );
-          vec4 color = texture2D(tMap, uv);
-          
+       void main() {
+          float planeAspect = uPlaneSizes.x / uPlaneSizes.y;
+          float imageAspect = uImageSizes.x / uImageSizes.y;
+
+          // Contain-fit: scale UVs so the whole image is visible, letterboxing
+          // the rest with transparency instead of cropping.
+          vec2 scale = vec2(1.0);
+          if (imageAspect > planeAspect) {
+            scale.y = imageAspect / planeAspect;
+          } else {
+            scale.x = planeAspect / imageAspect;
+          }
+          vec2 uv = (vUv - 0.5) * scale + 0.5;
+
+          bool outOfBounds = uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0;
+          vec4 color = outOfBounds ? vec4(0.0) : texture2D(tMap, uv);
+
           float d = roundedBoxSDF(vUv - 0.5, vec2(0.5 - uBorderRadius), uBorderRadius);
-          
-          // Smooth antialiasing for edges
           float edgeSmooth = 0.002;
-          float alpha = 1.0 - smoothstep(-edgeSmooth, edgeSmooth, d);
-          
+          float shapeAlpha = 1.0 - smoothstep(-edgeSmooth, edgeSmooth, d);
+
+          float alpha = outOfBounds ? 0.0 : shapeAlpha;
           gl_FragColor = vec4(color.rgb, alpha);
         }
       `,

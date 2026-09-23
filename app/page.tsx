@@ -2593,7 +2593,7 @@ function ScrollStack({
   scaleEndPosition = "10%",
   baseScale = 0.85,
   rotationAmount = 0,
-  blurAmount = 0,
+    blurAmount = 0,
   onStackComplete,
 }) {
   const scrollerRef = useRef(null);
@@ -2601,6 +2601,8 @@ function ScrollStack({
   const animationFrameRef = useRef(null);
   const lenisRef = useRef(null);
   const cardsRef = useRef([]);
+  const offsetsRef = useRef([]);
+  const endOffsetRef = useRef(0);
   const lastTransformsRef = useRef(new Map());
   const isUpdatingRef = useRef(false);
 
@@ -2617,30 +2619,34 @@ function ScrollStack({
     return parseFloat(value);
   }, []);
 
-  const getScrollData = useCallback(() => {
-    return { scrollTop: window.scrollY, containerHeight: window.innerHeight };
-  }, []);
-
-  const getElementOffset = useCallback((element) => {
-    const rect = element.getBoundingClientRect();
-    return rect.top + window.scrollY;
+  // Reads layout ONCE (mount + resize) instead of every scroll frame.
+  const measure = useCallback(() => {
+    offsetsRef.current = cardsRef.current.map((card) => {
+      const prevTransform = card.style.transform;
+      card.style.transform = "none";
+      const top = card.getBoundingClientRect().top + window.scrollY;
+      card.style.transform = prevTransform;
+      return top;
+    });
+    const endEl = scrollerRef.current?.querySelector(".scroll-stack-end");
+    endOffsetRef.current = endEl ? endEl.getBoundingClientRect().top + window.scrollY : 0;
   }, []);
 
   const updateCardTransforms = useCallback(() => {
     if (!cardsRef.current.length || isUpdatingRef.current) return;
     isUpdatingRef.current = true;
 
-    const { scrollTop, containerHeight } = getScrollData();
+    const scrollTop = window.scrollY;
+    const containerHeight = window.innerHeight;
     const stackPositionPx = parsePercentage(stackPosition, containerHeight);
     const scaleEndPositionPx = parsePercentage(scaleEndPosition, containerHeight);
-
-    const endElement = document.querySelector(".scroll-stack-end");
-    const endElementTop = endElement ? getElementOffset(endElement) : 0;
+    const endElementTop = endOffsetRef.current;
 
     cardsRef.current.forEach((card, i) => {
       if (!card) return;
 
-      const cardTop = getElementOffset(card);
+      const cardTop = offsetsRef.current[i];
+      if (cardTop === undefined) return;
       const triggerStart = cardTop - stackPositionPx - itemStackDistance * i;
       const triggerEnd = cardTop - scaleEndPositionPx;
       const pinStart = cardTop - stackPositionPx - itemStackDistance * i;
@@ -2651,12 +2657,11 @@ function ScrollStack({
       const scale = 1 - scaleProgress * (1 - targetScale);
       const rotation = rotationAmount ? i * rotationAmount * scaleProgress : 0;
 
-      let blur = 0;
+           let blur = 0;
       if (blurAmount) {
         let topCardIndex = 0;
         for (let j = 0; j < cardsRef.current.length; j++) {
-          const jCardTop = getElementOffset(cardsRef.current[j]);
-          const jTriggerStart = jCardTop - stackPositionPx - itemStackDistance * j;
+          const jTriggerStart = offsetsRef.current[j] - stackPositionPx - itemStackDistance * j;
           if (scrollTop >= jTriggerStart) topCardIndex = j;
         }
         if (i < topCardIndex) blur = Math.max(0, (topCardIndex - i) * blurAmount);
@@ -2704,7 +2709,7 @@ function ScrollStack({
     });
 
     isUpdatingRef.current = false;
-  }, [
+   }, [
     itemScale,
     itemStackDistance,
     stackPosition,
@@ -2715,8 +2720,6 @@ function ScrollStack({
     onStackComplete,
     calculateProgress,
     parsePercentage,
-    getScrollData,
-    getElementOffset,
   ]);
 
   const handleScroll = useCallback(() => {
@@ -2761,9 +2764,17 @@ function ScrollStack({
     animationFrameRef.current = requestAnimationFrame(raf);
     lenisRef.current = lenis;
 
+      measure();
     updateCardTransforms();
 
-    return () => {
+    const handleResize = () => {
+      measure();
+      updateCardTransforms();
+    };
+    window.addEventListener("resize", handleResize);
+
+       return () => {
+      window.removeEventListener("resize", handleResize);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       if (lenisRef.current) lenisRef.current.destroy();
       stackCompletedRef.current = false;
@@ -2782,6 +2793,7 @@ function ScrollStack({
     blurAmount,
     onStackComplete,
     updateCardTransforms,
+    measure,
   ]);
 
   return (
@@ -3093,11 +3105,11 @@ export default function Home() {
           </p>
         </motion.div>
 
-        <ScrollStack itemDistance={120} itemScale={0.03} itemStackDistance={30} baseScale={0.86} blurAmount={0}>
+        <ScrollStack itemDistance={64} itemScale={0.03} itemStackDistance={18} baseScale={0.92} blurAmount={0}>
           {whatWeDo.map((item) => (
             <ScrollStackItem key={item.title}>
-              <div className="bg-[#1A1A1A] rounded-3xl overflow-hidden h-full flex flex-col md:flex-row shadow-2xl">
-                <div className="md:w-1/2 h-64 md:h-auto">
+              <div className="bg-[#1A1A1A] rounded-3xl overflow-hidden h-full flex flex-col md:flex-row shadow-2xl max-h-[420px] md:max-h-[380px]">
+                <div className="md:w-1/2 h-48 md:h-auto">
                   <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                 </div>
                 <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center text-white">

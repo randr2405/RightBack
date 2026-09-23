@@ -2377,7 +2377,7 @@ class CGMedia {
 }
 
 class CGApp {
-  constructor(
+    constructor(
     container,
     {
       items,
@@ -2387,11 +2387,13 @@ class CGApp {
       font = 'bold 30px Figtree',
       scrollSpeed = 2,
       scrollEase = 0.05,
+      autoplaySpeed = 0.3,
     } = {}
   ) {
     document.documentElement.classList.remove('no-js');
     this.container = container;
     this.scrollSpeed = scrollSpeed;
+    this.autoplaySpeed = autoplaySpeed;
     this.scroll = { ease: scrollEase, current: 0, target: 0, last: 0 };
     this.onCheckDebounce = cgDebounce(this.onCheck, 200);
     this.createRenderer();
@@ -2532,7 +2534,8 @@ class CGApp {
       this.medias.forEach((media) => media.onResize({ screen: this.screen, viewport: this.viewport }));
     }
   }
-  update() {
+    update() {
+    this.scroll.target += this.autoplaySpeed;
     this.scroll.current = cgLerp(this.scroll.current, this.scroll.target, this.scroll.ease);
     const direction = this.scroll.current > this.scroll.last ? 'right' : 'left';
     if (this.medias) {
@@ -2593,6 +2596,7 @@ function CircularGallery({
   fontUrl,
   scrollSpeed = 2,
   scrollEase = 0.05,
+  autoplaySpeed = 0.3,
   style,
 }) {
   const containerRef = useRef(null);
@@ -2610,6 +2614,7 @@ function CircularGallery({
         font: resolvedFont,
         scrollSpeed,
         scrollEase,
+        autoplaySpeed,
       });
     });
 
@@ -2617,7 +2622,7 @@ function CircularGallery({
       isMounted = false;
       if (app) app.destroy();
     };
-  }, [items, bend, textColor, borderRadius, font, fontUrl, scrollSpeed, scrollEase]);
+  }, [items, bend, textColor, borderRadius, font, fontUrl, scrollSpeed, scrollEase, autoplaySpeed]);
   return (
     <div
       className="circular-gallery"

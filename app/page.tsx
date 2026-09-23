@@ -2167,6 +2167,13 @@ export default function Home() {
             paused={false}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-neutral-100 pointer-events-none" />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(60% 45% at 50% 42%, rgba(0,0,0,0.45), transparent 70%)",
+            }}
+          />
         </div>
 
         <motion.div style={{ opacity: heroOpacity }} className="relative">
@@ -2175,8 +2182,19 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, ease: "easeOut" }}
             className="text-5xl sm:text-7xl font-bold leading-tight max-w-4xl mx-auto text-white"
+            style={{ textShadow: "0 2px 24px rgba(0,0,0,0.65)" }}
           >
-            Advanced Garment <span className="text-red">Manufacturing Solutions</span>
+            Advanced Garment{" "}
+            <span
+              className="text-white"
+              style={{
+                WebkitTextStroke: "1.5px #DC2626",
+                textShadow:
+                  "0 2px 4px rgba(0,0,0,0.8), 0 0 28px rgba(0,0,0,0.6)",
+              }}
+            >
+              Manufacturing Solutions
+            </span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 30 }}

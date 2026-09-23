@@ -2,27 +2,31 @@
 
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef, useState, MouseEvent, ReactNode } from "react";
+import { useRef } from "react";
 import Footer from "@/components/Footer";
 import AnimatedCounter from "@/components/AnimatedCounter";
 
 const whatWeDo = [
   {
+    index: "01",
     title: "Sewing & Automation",
     description:
       "High-performance sewing machines and engineered workstations built for speed, precision, and consistency.",
   },
   {
+    index: "02",
     title: "Cutting & CAD Solutions",
     description:
       "CNC cutting and pattern design systems that improve accuracy, reduce waste, and speed up production.",
   },
   {
+    index: "03",
     title: "Printing, Finishing & Laser",
     description:
       "Modern printing and laser finishing technologies that deliver premium results with lower water, energy, and labour usage.",
   },
   {
+    index: "04",
     title: "Laundry & Garment Dyeing",
     description:
       "Efficient and sustainable laundry and dyeing systems that enhance garment quality while reducing resource consumption.",
@@ -60,88 +64,45 @@ const industries = [
   "Industrial & technical textiles",
 ];
 
+const stats = [
+  { value: 20, suffix: "+", label: "Years experience" },
+  { value: 500, suffix: "+", label: "Machines installed" },
+  { value: 50, suffix: "+", label: "Factories served" },
+  { value: 100, suffix: "%", label: "Support commitment" },
+];
+
 const fadeUp = {
-  hidden: { opacity: 0, y: 60 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
+  hidden: { opacity: 0, y: 32 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
 } as const;
 
 const stagger = {
   hidden: {},
-  show: {
-    transition: { staggerChildren: 0.12 },
-  },
+  show: { transition: { staggerChildren: 0.08 } },
 } as const;
 
-/** React Bits-style cursor-tracking spotlight glow, inlined locally for this page. */
-function SpotlightCard({
-  children,
-  className = "",
-  spotlightColor = "rgba(220, 38, 38, 0.12)",
-}: {
-  children: ReactNode;
-  className?: string;
-  spotlightColor?: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-  const [opacity, setOpacity] = useState(0);
-
-  function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
-    const rect = ref.current?.getBoundingClientRect();
-    if (!rect) return;
-    setPos({
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100,
-    });
-  }
-
+/** Corner-bracket frame — the recurring nameplate motif used on the hero and CTA. */
+function CornerBrackets({ dark = false }: { dark?: boolean }) {
+  const stroke = dark ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.2)";
+  const corners = [
+    "top-0 left-0",
+    "top-0 right-0 rotate-90",
+    "bottom-0 right-0 rotate-180",
+    "bottom-0 left-0 -rotate-90",
+  ];
   return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setOpacity(1)}
-      onMouseLeave={() => setOpacity(0)}
-      className={`relative overflow-hidden ${className}`}
-    >
-      <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-500"
-        style={{
-          opacity,
-          background: `radial-gradient(500px circle at ${pos.x}% ${pos.y}%, ${spotlightColor}, transparent 65%)`,
-        }}
-      />
-      <div className="relative z-10 h-full">{children}</div>
-    </motion.div>
-  );
-}
-
-/** React Bits-style animated dot-grid background, inlined locally for this page. */
-function DotGrid({ className = "" }: { className?: string }) {
-  return (
-    <div className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}>
-      <svg className="absolute inset-0 w-full h-full opacity-[0.35]">
-        <defs>
-          <pattern id="dot-grid-pattern" width="28" height="28" patternUnits="userSpaceOnUse">
-            <circle cx="1.5" cy="1.5" r="1.5" fill="currentColor" className="text-black/15" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#dot-grid-pattern)" />
-      </svg>
-
-      <motion.div
-        animate={{
-          background: [
-            "radial-gradient(600px circle at 20% 30%, rgba(220,38,38,0.10), transparent 60%)",
-            "radial-gradient(600px circle at 80% 60%, rgba(220,38,38,0.10), transparent 60%)",
-            "radial-gradient(600px circle at 20% 30%, rgba(220,38,38,0.10), transparent 60%)",
-          ],
-        }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute inset-0"
-      />
-
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neutral-100" />
-    </div>
+    <>
+      {corners.map((pos) => (
+        <svg
+          key={pos}
+          className={`pointer-events-none absolute h-6 w-6 sm:h-9 sm:w-9 ${pos}`}
+          viewBox="0 0 36 36"
+          fill="none"
+        >
+          <path d="M2 14V2H14" stroke={stroke} strokeWidth="1.5" />
+        </svg>
+      ))}
+    </>
   );
 }
 
@@ -152,64 +113,69 @@ export default function Home() {
     offset: ["start start", "end start"],
   });
 
-  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.2]);
-  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.3]);
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden bg-neutral-100">
-      {/* Hero with parallax */}
+      {/* Hero — engineering spec-plate treatment */}
       <section
         ref={heroRef}
-        className="relative bg-neutral-100 text-black text-center px-6 py-40 overflow-hidden"
+        className="relative bg-neutral-100 text-black px-6 pt-28 pb-20 sm:pt-36 sm:pb-28"
       >
         <motion.div
-          style={{ y: heroY, scale: heroScale }}
-          className="absolute inset-0"
+          style={{ y: heroY, opacity: heroOpacity }}
+          className="relative max-w-6xl mx-auto"
         >
-          <DotGrid />
-        </motion.div>
+          <div className="relative border border-black/15 px-6 py-14 sm:px-16 sm:py-20">
+            <CornerBrackets />
 
-        <motion.div style={{ opacity: heroOpacity }} className="relative">
-          <motion.h1
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: "easeOut" }}
-            className="text-5xl sm:text-7xl font-bold leading-tight max-w-4xl mx-auto text-black"
-          >
-            Advanced Garment{" "}
-            <motion.span
-              className="bg-clip-text text-transparent bg-[length:200%_auto]"
-              style={{
-                backgroundImage:
-                  "linear-gradient(90deg, #1a1a1a 0%, #dc2626 25%, #1a1a1a 50%, #dc2626 75%, #1a1a1a 100%)",
-              }}
-              animate={{ backgroundPosition: ["0% 50%", "200% 50%"] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            <motion.div
+              initial="hidden"
+              animate="show"
+              variants={stagger}
+              className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 items-end"
             >
-              Manufacturing Solutions
-            </motion.span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
-            className="mt-6 text-lg sm:text-2xl text-black/70"
-          >
-            Precision machinery. Smarter production. Reliable performance.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.4, ease: "easeOut" }}
-          >
-            <Link
-              href="/contact"
-              className="inline-block mt-10 px-10 py-4 border border-red text-black rounded-full text-lg hover:bg-red hover:text-white hover:scale-105 transition-all duration-300"
-            >
-              Explore our solutions
-            </Link>
-          </motion.div>
+              <div>
+                <motion.div
+                  variants={fadeUp}
+                  className="flex items-center gap-3 text-sm text-black/50 font-mono mb-6"
+                >
+                  <span>REF. 001</span>
+                  <span className="h-px w-10 bg-black/20" />
+                  <span>GARMENT MANUFACTURING EQUIPMENT</span>
+                </motion.div>
+
+                <motion.h1
+                  variants={fadeUp}
+                  className="text-5xl sm:text-7xl font-bold leading-[1.02] tracking-tight max-w-3xl"
+                >
+                  Advanced garment
+                  <br />
+                  manufacturing
+                  <br />
+                  <span className="text-red">solutions.</span>
+                </motion.h1>
+
+                <motion.p
+                  variants={fadeUp}
+                  className="mt-8 text-lg sm:text-xl text-black/70 max-w-md"
+                >
+                  Precision machinery. Smarter production. Reliable
+                  performance.
+                </motion.p>
+              </div>
+
+              <motion.div variants={fadeUp}>
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-3 px-8 py-4 bg-black text-white text-base rounded-none hover:bg-red transition-colors duration-300"
+                >
+                  Explore our solutions
+                </Link>
+              </motion.div>
+            </motion.div>
+          </div>
         </motion.div>
       </section>
 
@@ -219,9 +185,9 @@ export default function Home() {
         whileInView="show"
         viewport={{ once: true, amount: 0.4 }}
         variants={fadeUp}
-        className="bg-neutral-100 text-black text-center px-6 pb-24"
+        className="bg-neutral-100 px-6 pb-24"
       >
-        <p className="max-w-3xl mx-auto text-black/70 text-lg sm:text-xl">
+        <p className="max-w-2xl mx-auto text-black/70 text-lg sm:text-xl border-l-2 border-red pl-6">
           Rightback supplies world-class apparel manufacturing technology to
           factories across Southern Africa. From sewing and automation to
           cutting, finishing, printing, and digital systems, we help
@@ -230,19 +196,20 @@ export default function Home() {
         </p>
       </motion.section>
 
-      {/* Stats */}
-      <section className="bg-white px-6 py-20">
+      {/* Stats — spec-strip, not cards */}
+      <section className="bg-black text-white px-6 py-16">
         <motion.div
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.4 }}
           variants={stagger}
-          className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8"
+          className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-4 divide-x divide-white/15"
         >
-          <AnimatedCounter value={20} suffix="+" label="Years Experience" />
-          <AnimatedCounter value={500} suffix="+" label="Machines Installed" />
-          <AnimatedCounter value={50} suffix="+" label="Factories Served" />
-          <AnimatedCounter value={100} suffix="%" label="Support Commitment" />
+          {stats.map((s) => (
+            <motion.div key={s.label} variants={fadeUp} className="px-4 sm:px-8 first:pl-0 font-mono">
+              <AnimatedCounter value={s.value} suffix={s.suffix} label={s.label} />
+            </motion.div>
+          ))}
         </motion.div>
       </section>
 
@@ -252,179 +219,156 @@ export default function Home() {
         whileInView="show"
         viewport={{ once: true, amount: 0.3 }}
         variants={fadeUp}
-        className="bg-neutral-100 text-center px-6 py-24"
+        className="bg-neutral-100 px-6 py-24"
       >
-        <h2 className="text-3xl sm:text-4xl font-bold text-black">
-          Proven, production-ready machinery
-        </h2>
-        <p className="mt-4 max-w-3xl mx-auto text-black/70 text-lg">
-          For over two decades, Rightback has partnered with leading global
-          manufacturers to deliver proven, production-ready machinery to the
-          garment, denim, and textile industries. We don&apos;t just sell
-          machines, we provide complete production solutions, backed by{" "}
-          <span className="font-semibold text-black">
-            technical expertise, trusted brands, and long-term support.
-          </span>
-        </p>
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            Proven, production-ready machinery
+          </h2>
+          <p className="mt-5 text-black/70 text-lg">
+            For over two decades, Rightback has partnered with leading global
+            manufacturers to deliver proven, production-ready machinery to
+            the garment, denim, and textile industries. We don&apos;t just
+            sell machines, we provide complete production solutions, backed
+            by technical expertise, trusted brands, and long-term support.
+          </p>
+        </div>
       </motion.section>
 
-      {/* What we do */}
-      <section className="bg-neutral-100 px-6 py-28">
-        <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.2 }}
-          variants={fadeUp}
-          className="max-w-6xl mx-auto text-center mb-16"
-        >
-          <p className="text-red font-semibold tracking-wide uppercase text-sm mb-2">
-            What we do
-          </p>
-          <h2 className="text-3xl sm:text-5xl font-bold text-black">
-            Complete Apparel Production Solutions
-          </h2>
-          <p className="mt-4 max-w-2xl mx-auto text-black/70 text-lg">
-            Rightback offers end-to-end equipment for every stage of garment
-            manufacturing, helping you streamline operations and stay
-            competitive in a fast-moving industry.
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.15 }}
-          variants={stagger}
-          className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {whatWeDo.map((item) => (
-            <motion.div
-              key={item.title}
-              variants={fadeUp}
-              whileHover={{ y: -10, scale: 1.03 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              <SpotlightCard className="bg-white rounded-2xl p-6 h-full flex flex-col justify-between shadow-sm hover:shadow-xl border border-black/5 hover:border-red/40 transition-all duration-300">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 text-black">
-                    {item.title}
-                  </h3>
-                  <p className="text-black/70 text-sm">{item.description}</p>
-                </div>
-                <span className="mt-6 inline-block text-red text-sm font-medium cursor-pointer">
-                  Learn more →
-                </span>
-              </SpotlightCard>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        <motion.p
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="text-center mt-16 text-black/60"
-        >
-          Each solution is selected for performance, reliability, and
-          real-world production demands.
-        </motion.p>
-      </section>
-
-      {/* Why choose us */}
+      {/* What we do — numbered production-line index (numbering reflects the actual line sequence) */}
       <section className="bg-white px-6 py-28">
-        <motion.h2
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="text-3xl sm:text-5xl font-bold text-black text-center mb-16"
-        >
-          Why Choose Rightback
-        </motion.h2>
-        <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.15 }}
-          variants={stagger}
-          className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {whyChoose.map((item) => (
-            <motion.div key={item.title} variants={fadeUp} whileHover={{ y: -8 }}>
-              <SpotlightCard
-                spotlightColor="rgba(220, 38, 38, 0.08)"
-                className="bg-neutral-100 rounded-2xl p-6 h-full shadow-sm hover:shadow-lg transition-shadow duration-300 text-center"
-              >
-                <h3 className="font-semibold text-black mb-3">{item.title}</h3>
-                <p className="text-black/70 text-sm">{item.description}</p>
-              </SpotlightCard>
-            </motion.div>
-          ))}
-        </motion.div>
-      </section>
-
-      {/* Industries we serve */}
-      <section className="px-6 py-28 bg-neutral-100 overflow-hidden">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-5xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, x: -60 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={fadeUp}
+            className="mb-16 max-w-xl"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold text-black mb-6">
-              Industries We Serve
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight">
+              Complete apparel production solutions
             </h2>
-            <ul className="space-y-3 text-black/80 text-lg">
-              {industries.map((industry, i) => (
-                <motion.li
-                  key={industry}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="flex items-start gap-3"
-                >
-                  <span className="text-red mt-1.5">●</span>
-                  {industry}
-                </motion.li>
-              ))}
-            </ul>
+            <p className="mt-4 text-black/70 text-lg">
+              End-to-end equipment for every stage of garment manufacturing,
+              helping you streamline operations and stay competitive in a
+              fast-moving industry.
+            </p>
           </motion.div>
+
           <motion.div
-            initial={{ opacity: 0, x: 60, rotate: -2 }}
-            whileInView={{ opacity: 1, x: 0, rotate: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative bg-white rounded-2xl h-64 md:h-96 shadow-sm border border-black/5 overflow-hidden"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={stagger}
+            className="border-t border-black/10"
           >
-            <DotGrid />
+            {whatWeDo.map((item) => (
+              <motion.div
+                key={item.title}
+                variants={fadeUp}
+                className="group grid grid-cols-1 sm:grid-cols-[80px_1fr_1.2fr] gap-4 sm:gap-8 py-8 border-b border-black/10 items-baseline"
+              >
+                <span className="font-mono text-black/30 text-sm">
+                  {item.index}
+                </span>
+                <h3 className="text-xl font-semibold group-hover:text-red transition-colors duration-300">
+                  {item.title}
+                </h3>
+                <p className="text-black/60 text-base max-w-md">
+                  {item.description}
+                </p>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Why choose us — two-column labeled list */}
+      <section className="bg-neutral-100 px-6 py-28">
+        <div className="max-w-5xl mx-auto">
+          <motion.h2
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            className="text-3xl sm:text-5xl font-bold tracking-tight mb-16 max-w-xl"
+          >
+            Why manufacturers choose Rightback
+          </motion.h2>
+
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={stagger}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-12"
+          >
+            {whyChoose.map((item) => (
+              <motion.div
+                key={item.title}
+                variants={fadeUp}
+                className="border-l-2 border-black/10 pl-6"
+              >
+                <h3 className="font-semibold text-black mb-2 text-lg">
+                  {item.title}
+                </h3>
+                <p className="text-black/60 text-base">{item.description}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Industries we serve — inline tag row */}
+      <section className="px-6 py-24 bg-white">
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.4 }}
+          variants={fadeUp}
+          className="max-w-5xl mx-auto"
+        >
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-8">
+            Industries we serve
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            {industries.map((industry) => (
+              <span
+                key={industry}
+                className="px-4 py-2 border border-black/15 text-black/70 text-sm"
+              >
+                {industry}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+      </section>
+
+      {/* CTA — inverted nameplate, echoes the hero */}
       <motion.section
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.4 }}
         variants={fadeUp}
-        className="bg-neutral-200 text-black text-center px-6 py-28"
+        className="bg-black text-white px-6 py-24"
       >
-        <h2 className="text-3xl sm:text-5xl font-bold max-w-3xl mx-auto">
-          Power Your Production with Smarter Technology
-        </h2>
-        <p className="mt-6 max-w-2xl mx-auto text-black/70 text-lg">
-          Whether you&apos;re expanding capacity, improving efficiency, or
-          investing in automation, Rightback has the technology, and the
-          expertise, to support your growth.
-        </p>
-        <Link
-          href="/contact"
-          className="inline-block mt-10 px-10 py-4 border border-red text-black rounded-full text-lg hover:bg-red hover:text-white hover:scale-105 transition-all duration-300"
-        >
-          Contact us
-        </Link>
+        <div className="relative max-w-4xl mx-auto border border-white/15 px-6 py-16 sm:px-16 sm:py-20 text-center">
+          <CornerBrackets dark />
+          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight max-w-2xl mx-auto">
+            Power your production with smarter technology
+          </h2>
+          <p className="mt-6 max-w-xl mx-auto text-white/60 text-lg">
+            Whether you&apos;re expanding capacity, improving efficiency, or
+            investing in automation, Rightback has the technology, and the
+            expertise, to support your growth.
+          </p>
+          <Link
+            href="/contact"
+            className="inline-flex items-center gap-3 mt-10 px-8 py-4 bg-red text-white text-base hover:bg-white hover:text-black transition-colors duration-300"
+          >
+            Contact us
+          </Link>
+        </div>
       </motion.section>
 
       <Footer />

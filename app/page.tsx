@@ -2692,14 +2692,14 @@ const industries = [
 // (e.g. in /public/logos/) once you've uploaded them — see below for how
 // that works.
 const brandItems = [
-  { image: "/logos/brand-1.png", text: "Atexco" },
-  { image: "/logos/brand-2.png", text: "Yilmak" },
-  { image: "/logos/brand-3.png", text: "Morgan Tecnica" },
-  { image: "/logos/brand-4.png", text: "Inedit" },
-  { image: "/logos/brand-5.png", text: "Gemini" },
-  { image: "/logos/brand-6.png", text: "Macpi" },
-  { image: "/logos/brand-7.png", text: "Maica" },
-  { image: "/logos/brand-8.png", text: "Ferretto Group" },
+  { image: "/logos/atexco.png", text: "Atexco" },
+  { image: "/logos/ferretto-group.png", text: "Ferretto Group" },
+  { image: "/logos/gemini.png", text: "Gemini" },
+  { image: "/logos/inedit.png", text: "Inedit" },
+  { image: "/logos/macpi.png", text: "Macpi" },
+  { image: "/logos/maica.png", text: "Maica" },
+  { image: "/logos/morgan-tecnica.png", text: "Morgan Tecnica" },
+  { image: "/logos/yilmak.png", text: "Yilmak" },
 ];
 
 const fadeUp = {

@@ -1,7 +1,9 @@
 ﻿"use client";
 
+import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
-import { Mail, MapPin, Phone, Zap } from "lucide-react";
+import { Mail, MapPin, Phone, Zap, Check, AlertCircle } from "lucide-react";
+import emailjs from "@emailjs/browser";
 import { useSiteSettings } from "@/components/SiteSettingsProvider";
 
 const fadeUp = {
@@ -19,8 +21,58 @@ const fieldVariant = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 } as const;
 
+type FormStatus = "idle" | "sending" | "success" | "error";
+
 export default function ContactPage() {
   const { phones, emails, address } = useSiteSettings();
+
+  const [form, setForm] = useState({
+    name: "",
+    company: "",
+    email: "",
+    phone: "",
+    interest: "Sewing",
+    message: "",
+  });
+  const [status, setStatus] = useState<FormStatus>("idle");
+
+  function update(key: keyof typeof form, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setStatus("sending");
+
+    try {
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+        {
+          name: form.name,
+          company: form.company,
+          email: form.email,
+          phone: form.phone,
+          interest: form.interest,
+          message: form.message,
+        },
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+      );
+
+      setStatus("success");
+      setForm({
+        name: "",
+        company: "",
+        email: "",
+        phone: "",
+        interest: "Sewing",
+        message: "",
+      });
+    } catch (err) {
+      console.error("EmailJS send failed:", err);
+      setStatus("error");
+    }
+  }
 
   return (
     <div className="bg-neutral-100 flex-1 relative overflow-hidden">
@@ -69,6 +121,7 @@ export default function ContactPage() {
       <section className="relative px-6 pb-28">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-10">
           <motion.form
+            onSubmit={handleSubmit}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.2 }}
@@ -84,6 +137,9 @@ export default function ContactPage() {
                 <input
                   id="name"
                   type="text"
+                  required
+                  value={form.name}
+                  onChange={(e) => update("name", e.target.value)}
                   placeholder="Your name"
                   className="w-full rounded-lg border border-black/10 bg-neutral-100 px-4 py-3 text-sm text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-red/50 focus:scale-[1.01] transition-all duration-200"
                 />
@@ -95,6 +151,8 @@ export default function ContactPage() {
                 <input
                   id="company"
                   type="text"
+                  value={form.company}
+                  onChange={(e) => update("company", e.target.value)}
                   placeholder="Your company"
                   className="w-full rounded-lg border border-black/10 bg-neutral-100 px-4 py-3 text-sm text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-red/50 focus:scale-[1.01] transition-all duration-200"
                 />
@@ -109,6 +167,9 @@ export default function ContactPage() {
                 <input
                   id="email"
                   type="email"
+                  required
+                  value={form.email}
+                  onChange={(e) => update("email", e.target.value)}
                   placeholder="you@company.com"
                   className="w-full rounded-lg border border-black/10 bg-neutral-100 px-4 py-3 text-sm text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-red/50 focus:scale-[1.01] transition-all duration-200"
                 />
@@ -120,6 +181,8 @@ export default function ContactPage() {
                 <input
                   id="phone"
                   type="tel"
+                  value={form.phone}
+                  onChange={(e) => update("phone", e.target.value)}
                   placeholder="+27 ..."
                   className="w-full rounded-lg border border-black/10 bg-neutral-100 px-4 py-3 text-sm text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-red/50 focus:scale-[1.01] transition-all duration-200"
                 />
@@ -132,6 +195,8 @@ export default function ContactPage() {
               </label>
               <select
                 id="interest"
+                value={form.interest}
+                onChange={(e) => update("interest", e.target.value)}
                 className="w-full rounded-lg border border-black/10 bg-neutral-100 px-4 py-3 text-sm text-black focus:outline-none focus:ring-2 focus:ring-red/50 transition-all duration-200"
               >
                 <option>Sewing</option>
@@ -153,20 +218,44 @@ export default function ContactPage() {
               <textarea
                 id="message"
                 rows={5}
+                required
+                value={form.message}
+                onChange={(e) => update("message", e.target.value)}
                 placeholder="Tell us about your requirements..."
                 className="w-full rounded-lg border border-black/10 bg-neutral-100 px-4 py-3 text-sm text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-red/50 focus:scale-[1.01] transition-all duration-200 resize-none"
               />
             </motion.div>
 
-            <motion.div variants={fieldVariant}>
+            <motion.div variants={fieldVariant} className="mt-8 flex items-center gap-4">
               <motion.button
                 type="submit"
+                disabled={status === "sending"}
                 whileHover={{ scale: 1.03, boxShadow: "0 10px 25px -5px rgba(214,40,40,0.4)" }}
                 whileTap={{ scale: 0.97 }}
-                className="mt-8 w-full sm:w-auto px-10 py-3.5 bg-red text-white text-sm font-medium rounded-full hover:bg-black transition-colors duration-300"
+                className="w-full sm:w-auto px-10 py-3.5 bg-red text-white text-sm font-medium rounded-full hover:bg-black transition-colors duration-300 disabled:opacity-50"
               >
-                Send Message
+                {status === "sending" ? "Sending..." : "Send Message"}
               </motion.button>
+
+              {status === "success" && (
+                <motion.span
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-1.5 text-sm text-green-700"
+                >
+                  <Check size={16} /> Message sent — we&apos;ll be in touch soon.
+                </motion.span>
+              )}
+
+              {status === "error" && (
+                <motion.span
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-1.5 text-sm text-red"
+                >
+                  <AlertCircle size={16} /> Something went wrong. Please try again.
+                </motion.span>
+              )}
             </motion.div>
           </motion.form>
 

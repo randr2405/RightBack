@@ -2588,6 +2588,7 @@ function CircularGallery({
   fontUrl,
   scrollSpeed = 2,
   scrollEase = 0.05,
+  style,
 }) {
   const containerRef = useRef(null);
   useEffect(() => {
@@ -2619,6 +2620,12 @@ function CircularGallery({
       tabIndex={0}
       role="region"
       aria-label="Circular image gallery. Use left and right arrow keys to navigate."
+      // Inline styles always beat an external .circular-gallery class rule
+      // (same specificity, later-wins-by-source-order isn't guaranteed once
+      // bundlers reorder stylesheets), so passing `style` here is the
+      // reliable way to size this container regardless of what
+      // CircularGallery.css declares.
+      style={{ width: "100%", height: "100%", position: "relative", overflow: "hidden", ...style }}
     />
   );
 }
@@ -2913,19 +2920,25 @@ export default function Home() {
           </p>
         </motion.div>
 
-        <div className="max-w-5xl mx-auto">
-          <div style={{ height: "420px", position: "relative" }}>
-            <CircularGallery
-              items={brandItems}
-              bend={1}
-              textColor="#1A1A1A"
-              borderRadius={0.05}
-              scrollEase={0.05}
-              fontUrl=""
-              font="bold 30px Orbitron"
-              scrollSpeed={2}
-            />
-          </div>
+        {/* Tile size is driven by this wrapper's HEIGHT (taller = bigger
+            logos); roughly how many are visible at once is driven by the
+            WIDTH-to-HEIGHT ratio. These numbers are tuned to show ~6 tiles
+            at a comfortable size — nudge `height` up/down to resize the
+            tiles, and the width below to change how many fit on screen. */}
+        <div
+          className="mx-auto"
+          style={{ width: "960px", maxWidth: "100%", height: "340px", position: "relative" }}
+        >
+          <CircularGallery
+            items={brandItems}
+            bend={1}
+            textColor="#1A1A1A"
+            borderRadius={0.05}
+            scrollEase={0.05}
+            fontUrl=""
+            font="bold 30px Orbitron"
+            scrollSpeed={2}
+          />
         </div>
       </section>
 

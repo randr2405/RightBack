@@ -2940,15 +2940,16 @@ export default function Home() {
           style={{ width: "960px", maxWidth: "100%", height: "340px", position: "relative" }}
         >
           <CircularGallery
-            items={brandItems}
-            bend={1}
-            textColor="#1A1A1A"
-            borderRadius={0.05}
-            scrollEase={0.05}
-            fontUrl=""
-            font="bold 30px Orbitron"
-            scrollSpeed={0.01}
-          />
+  items={brandItems}
+  bend={1}
+  textColor="#1A1A1A"
+  borderRadius={0.05}
+  scrollEase={0.05}
+  fontUrl=""
+  font="bold 30px Orbitron"
+  scrollSpeed={2}
+  autoplaySpeed={0.015}
+/>
         </div>
       </section>
 

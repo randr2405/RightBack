@@ -3,23 +3,12 @@
 
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-import {
-  useEffect,
-  useRef,
-  useState,
-  MouseEvent,
-  ReactNode,
-} from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { draw, effect, frame, init, sampler, surface, target, uniforms } from "vgpu";
 import { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } from "ogl";
+import Lenis from "lenis";
 import Footer from "@/components/Footer";
 import AnimatedCounter from "@/components/AnimatedCounter";
-
-/* ------------------------------------------------------------------ */
-/*  AeroShards — inlined directly into the home page (no separate     */
-/*  component file). Colors below are set to the site's red/black     */
-/*  theme instead of the original purple defaults.                    */
-/* ------------------------------------------------------------------ */
 
 const PLACEMENTS = { right: 0, left: 1, center: 2, full: 3 };
 const MATERIALS = { pearl: 0, chrome: 1, satin: 2 };
@@ -1216,7 +1205,6 @@ const prepareRenderGraph = async (graph, outputFormat) => {
   ]);
 };
 
-/** WebGPU shard field, inlined here so the whole hero lives in this one file. */
 function AeroShards({
   backgroundColor = "#1A1A1A",
   shardColor = "#DC2626",
@@ -1984,15 +1972,6 @@ function AeroShards({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  CircularGallery — inlined directly into the home page (no separate */
-/*  component file). Used below for the "trusted brands" section.      */
-/*  NOTE: this still relies on the CSS class names from                */
-/*  CircularGallery.css (e.g. `.circular-gallery`). Keep that           */
-/*  stylesheet imported globally (e.g. in your root layout/globals.css) */
-/*  since a plain .jsx page file cannot inline a CSS file's rules.      */
-/* ------------------------------------------------------------------ */
-
 function cgDebounce(func, wait) {
   let timeout;
   return function (...args) {
@@ -2015,8 +1994,6 @@ function cgAutoBind(instance) {
 }
 
 const CG_DEFAULT_FONT = 'bold 30px Figtree';
-// Figtree is not guaranteed to be available on the host page, so the component
-// loads it on demand whenever the default font is used.
 const CG_DEFAULT_FONT_URL = 'https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&display=swap';
 
 function cgDeriveFontFamilyFromUrl(url) {
@@ -2069,24 +2046,14 @@ async function cgLoadCustomFont(fontUrl) {
   return isStylesheet ? cgLoadFontFromStylesheet(fontUrl) : cgLoadFontFromFile(fontUrl);
 }
 
-// Loads `fontUrl` (a stylesheet such as a Google Fonts URL, or a direct font
-// file) and returns a canvas-ready font string that keeps the size/weight from
-// `font` but swaps in the freshly loaded family. Falls back to `font` on error.
 async function cgResolveFont(font, fontUrl) {
-  // Use the bundled Figtree stylesheet when the caller relies on the default
-  // font, otherwise honor the explicit `fontUrl`.
   const effectiveUrl = fontUrl || (font === CG_DEFAULT_FONT ? CG_DEFAULT_FONT_URL : null);
   if (!effectiveUrl) {
-    // A custom family was supplied without a URL – make sure it is ready (in
-    // case the host page declares it) before we draw it to the canvas,
-    // otherwise the first paint silently falls back to a system font.
     if (document.fonts && document.fonts.load) {
       try {
         await document.fonts.load(font);
         await document.fonts.ready;
-      } catch {
-        // Ignore – fall back to whatever the browser provides.
-      }
+      } catch {}
     }
     return font;
   }
@@ -2098,9 +2065,7 @@ async function cgResolveFont(font, fontUrl) {
     if (document.fonts && document.fonts.load) {
       try {
         await document.fonts.load(resolved);
-      } catch {
-        // Ignore – we still attempt to render with the requested font.
-      }
+      } catch {}
     }
     return resolved;
   } catch (error) {
@@ -2221,9 +2186,7 @@ class CGMedia {
     this.onResize();
   }
   createShader() {
-    const texture = new Texture(this.gl, {
-      generateMipmaps: true,
-    });
+    const texture = new Texture(this.gl, { generateMipmaps: true });
     this.program = new Program(this.gl, {
       depthTest: false,
       depthWrite: false,
@@ -2250,18 +2213,16 @@ class CGMedia {
         uniform sampler2D tMap;
         uniform float uBorderRadius;
         varying vec2 vUv;
-        
+
         float roundedBoxSDF(vec2 p, vec2 b, float r) {
           vec2 d = abs(p) - b;
           return length(max(d, vec2(0.0))) + min(max(d.x, d.y), 0.0) - r;
         }
-        
-       void main() {
+
+        void main() {
           float planeAspect = uPlaneSizes.x / uPlaneSizes.y;
           float imageAspect = uImageSizes.x / uImageSizes.y;
 
-          // Contain-fit: scale UVs so the whole image is visible, letterboxing
-          // the rest with transparency instead of cropping.
           vec2 scale = vec2(1.0);
           if (imageAspect > planeAspect) {
             scale.y = imageAspect / planeAspect;
@@ -2300,10 +2261,7 @@ class CGMedia {
     };
   }
   createMesh() {
-    this.plane = new Mesh(this.gl, {
-      geometry: this.geometry,
-      program: this.program,
-    });
+    this.plane = new Mesh(this.gl, { geometry: this.geometry, program: this.program });
     this.plane.setParent(this.scene);
   }
   createTitle() {
@@ -2377,7 +2335,7 @@ class CGMedia {
 }
 
 class CGApp {
-    constructor(
+  constructor(
     container,
     {
       items,
@@ -2424,10 +2382,7 @@ class CGApp {
     this.scene = new Transform();
   }
   createGeometry() {
-    this.planeGeometry = new Plane(this.gl, {
-      heightSegments: 50,
-      widthSegments: 100,
-    });
+    this.planeGeometry = new Plane(this.gl, { heightSegments: 50, widthSegments: 100 });
   }
   createMedias(items, bend = 1, textColor, borderRadius, font) {
     const defaultItems = [
@@ -2492,24 +2447,20 @@ class CGApp {
         this.scroll.target += this.scrollSpeed * 5;
         this.onCheckDebounce();
         break;
-
       case 'ArrowLeft':
         e.preventDefault();
         this.scroll.target -= this.scrollSpeed * 5;
         this.onCheckDebounce();
         break;
-
       case 'Home':
         e.preventDefault();
         this.scroll.target = 0;
         this.onCheckDebounce();
         break;
-
       default:
         break;
     }
   }
-
   onCheck() {
     if (!this.medias || !this.medias[0]) return;
     const width = this.medias[0].width;
@@ -2518,14 +2469,9 @@ class CGApp {
     this.scroll.target = this.scroll.target < 0 ? -item : item;
   }
   onResize() {
-    this.screen = {
-      width: this.container.clientWidth,
-      height: this.container.clientHeight,
-    };
+    this.screen = { width: this.container.clientWidth, height: this.container.clientHeight };
     this.renderer.setSize(this.screen.width, this.screen.height);
-    this.camera.perspective({
-      aspect: this.screen.width / this.screen.height,
-    });
+    this.camera.perspective({ aspect: this.screen.width / this.screen.height });
     const fov = (this.camera.fov * Math.PI) / 180;
     const height = 2 * Math.tan(fov / 2) * this.camera.position.z;
     const width = height * this.camera.aspect;
@@ -2534,7 +2480,7 @@ class CGApp {
       this.medias.forEach((media) => media.onResize({ screen: this.screen, viewport: this.viewport }));
     }
   }
-    update() {
+  update() {
     this.scroll.target += this.autoplaySpeed;
     this.scroll.current = cgLerp(this.scroll.current, this.scroll.target, this.scroll.ease);
     const direction = this.scroll.current > this.scroll.last ? 'right' : 'left';
@@ -2579,14 +2525,12 @@ class CGApp {
     if (this.renderer && this.renderer.gl && this.renderer.gl.canvas.parentNode) {
       this.renderer.gl.canvas.parentNode.removeChild(this.renderer.gl.canvas);
     }
-
     if (this.container) {
       this.container.removeEventListener('keydown', this.boundOnKeyDown);
     }
   }
 }
 
-/** WebGL brand-logo carousel, inlined here so the whole page lives in this one file. */
 function CircularGallery({
   items,
   bend = 3,
@@ -2630,40 +2574,254 @@ function CircularGallery({
       tabIndex={0}
       role="region"
       aria-label="Circular image gallery. Use left and right arrow keys to navigate."
-      // Inline styles always beat an external .circular-gallery class rule
-      // (same specificity, later-wins-by-source-order isn't guaranteed once
-      // bundlers reorder stylesheets), so passing `style` here is the
-      // reliable way to size this container regardless of what
-      // CircularGallery.css declares.
       style={{ width: "100%", height: "100%", position: "relative", overflow: "hidden", ...style }}
     />
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Page content                                                      */
-/* ------------------------------------------------------------------ */
+function ScrollStackItem({ children, itemClassName = "" }) {
+  return <div className={`scroll-stack-card ${itemClassName}`.trim()}>{children}</div>;
+}
+
+function ScrollStack({
+  children,
+  className = "",
+  itemDistance = 100,
+  itemScale = 0.03,
+  itemStackDistance = 30,
+  stackPosition = "20%",
+  scaleEndPosition = "10%",
+  baseScale = 0.85,
+  rotationAmount = 0,
+  blurAmount = 0,
+  onStackComplete,
+}) {
+  const scrollerRef = useRef(null);
+  const stackCompletedRef = useRef(false);
+  const animationFrameRef = useRef(null);
+  const lenisRef = useRef(null);
+  const cardsRef = useRef([]);
+  const lastTransformsRef = useRef(new Map());
+  const isUpdatingRef = useRef(false);
+
+  const calculateProgress = useCallback((scrollTop, start, end) => {
+    if (scrollTop < start) return 0;
+    if (scrollTop > end) return 1;
+    return (scrollTop - start) / (end - start);
+  }, []);
+
+  const parsePercentage = useCallback((value, containerHeight) => {
+    if (typeof value === "string" && value.includes("%")) {
+      return (parseFloat(value) / 100) * containerHeight;
+    }
+    return parseFloat(value);
+  }, []);
+
+  const getScrollData = useCallback(() => {
+    return { scrollTop: window.scrollY, containerHeight: window.innerHeight };
+  }, []);
+
+  const getElementOffset = useCallback((element) => {
+    const rect = element.getBoundingClientRect();
+    return rect.top + window.scrollY;
+  }, []);
+
+  const updateCardTransforms = useCallback(() => {
+    if (!cardsRef.current.length || isUpdatingRef.current) return;
+    isUpdatingRef.current = true;
+
+    const { scrollTop, containerHeight } = getScrollData();
+    const stackPositionPx = parsePercentage(stackPosition, containerHeight);
+    const scaleEndPositionPx = parsePercentage(scaleEndPosition, containerHeight);
+
+    const endElement = document.querySelector(".scroll-stack-end");
+    const endElementTop = endElement ? getElementOffset(endElement) : 0;
+
+    cardsRef.current.forEach((card, i) => {
+      if (!card) return;
+
+      const cardTop = getElementOffset(card);
+      const triggerStart = cardTop - stackPositionPx - itemStackDistance * i;
+      const triggerEnd = cardTop - scaleEndPositionPx;
+      const pinStart = cardTop - stackPositionPx - itemStackDistance * i;
+      const pinEnd = endElementTop - containerHeight / 2;
+
+      const scaleProgress = calculateProgress(scrollTop, triggerStart, triggerEnd);
+      const targetScale = baseScale + i * itemScale;
+      const scale = 1 - scaleProgress * (1 - targetScale);
+      const rotation = rotationAmount ? i * rotationAmount * scaleProgress : 0;
+
+      let blur = 0;
+      if (blurAmount) {
+        let topCardIndex = 0;
+        for (let j = 0; j < cardsRef.current.length; j++) {
+          const jCardTop = getElementOffset(cardsRef.current[j]);
+          const jTriggerStart = jCardTop - stackPositionPx - itemStackDistance * j;
+          if (scrollTop >= jTriggerStart) topCardIndex = j;
+        }
+        if (i < topCardIndex) blur = Math.max(0, (topCardIndex - i) * blurAmount);
+      }
+
+      let translateY = 0;
+      const isPinned = scrollTop >= pinStart && scrollTop <= pinEnd;
+      if (isPinned) {
+        translateY = scrollTop - cardTop + stackPositionPx + itemStackDistance * i;
+      } else if (scrollTop > pinEnd) {
+        translateY = pinEnd - cardTop + stackPositionPx + itemStackDistance * i;
+      }
+
+      const newTransform = {
+        translateY: Math.round(translateY * 100) / 100,
+        scale: Math.round(scale * 1000) / 1000,
+        rotation: Math.round(rotation * 100) / 100,
+        blur: Math.round(blur * 100) / 100,
+      };
+      const lastTransform = lastTransformsRef.current.get(i);
+      const hasChanged =
+        !lastTransform ||
+        Math.abs(lastTransform.translateY - newTransform.translateY) > 0.1 ||
+        Math.abs(lastTransform.scale - newTransform.scale) > 0.001 ||
+        Math.abs(lastTransform.rotation - newTransform.rotation) > 0.1 ||
+        Math.abs(lastTransform.blur - newTransform.blur) > 0.1;
+
+      if (hasChanged) {
+        const transform = `translate3d(0, ${newTransform.translateY}px, 0) scale(${newTransform.scale}) rotate(${newTransform.rotation}deg)`;
+        const filter = newTransform.blur > 0 ? `blur(${newTransform.blur}px)` : "";
+        card.style.transform = transform;
+        card.style.filter = filter;
+        lastTransformsRef.current.set(i, newTransform);
+      }
+
+      if (i === cardsRef.current.length - 1) {
+        const isInView = scrollTop >= pinStart && scrollTop <= pinEnd;
+        if (isInView && !stackCompletedRef.current) {
+          stackCompletedRef.current = true;
+          onStackComplete?.();
+        } else if (!isInView && stackCompletedRef.current) {
+          stackCompletedRef.current = false;
+        }
+      }
+    });
+
+    isUpdatingRef.current = false;
+  }, [
+    itemScale,
+    itemStackDistance,
+    stackPosition,
+    scaleEndPosition,
+    baseScale,
+    rotationAmount,
+    blurAmount,
+    onStackComplete,
+    calculateProgress,
+    parsePercentage,
+    getScrollData,
+    getElementOffset,
+  ]);
+
+  const handleScroll = useCallback(() => {
+    updateCardTransforms();
+  }, [updateCardTransforms]);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const cards = Array.from(scroller.querySelectorAll(".scroll-stack-card"));
+    cardsRef.current = cards;
+    const transformsCache = lastTransformsRef.current;
+
+    cards.forEach((card, i) => {
+      if (i < cards.length - 1) {
+        card.style.marginBottom = `${itemDistance}px`;
+      }
+      card.style.willChange = "transform, filter";
+      card.style.transformOrigin = "top center";
+      card.style.backfaceVisibility = "hidden";
+      card.style.transform = "translateZ(0)";
+      card.style.webkitTransform = "translateZ(0)";
+    });
+
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      touchMultiplier: 2,
+      infinite: false,
+      wheelMultiplier: 1,
+      lerp: 0.1,
+      syncTouch: true,
+      syncTouchLerp: 0.075,
+    });
+    lenis.on("scroll", handleScroll);
+    const raf = (time) => {
+      lenis.raf(time);
+      animationFrameRef.current = requestAnimationFrame(raf);
+    };
+    animationFrameRef.current = requestAnimationFrame(raf);
+    lenisRef.current = lenis;
+
+    updateCardTransforms();
+
+    return () => {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (lenisRef.current) lenisRef.current.destroy();
+      stackCompletedRef.current = false;
+      cardsRef.current = [];
+      transformsCache.clear();
+      isUpdatingRef.current = false;
+    };
+  }, [
+    itemDistance,
+    itemScale,
+    itemStackDistance,
+    stackPosition,
+    scaleEndPosition,
+    baseScale,
+    rotationAmount,
+    blurAmount,
+    onStackComplete,
+    updateCardTransforms,
+  ]);
+
+  return (
+    <div className={`scroll-stack-scroller ${className}`.trim()} ref={scrollerRef}>
+      <div className="scroll-stack-inner">
+        {children}
+        <div className="scroll-stack-end" />
+      </div>
+    </div>
+  );
+}
 
 const whatWeDo = [
   {
     title: "Sewing & Automation",
     description:
       "High-performance sewing machines and engineered workstations built for speed, precision, and consistency.",
+    image:
+      "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=1200&auto=format&fit=crop",
   },
   {
     title: "Cutting & CAD Solutions",
     description:
       "CNC cutting and pattern design systems that improve accuracy, reduce waste, and speed up production.",
+    image:
+      "https://images.unsplash.com/photo-1581093458791-9d42e0c5a2f5?q=80&w=1200&auto=format&fit=crop",
   },
   {
     title: "Printing, Finishing & Laser",
     description:
       "Modern printing and laser finishing technologies that deliver premium results with lower water, energy, and labour usage.",
+    image:
+      "https://images.unsplash.com/photo-1614854262340-ab1ca7d079c7?q=80&w=1200&auto=format&fit=crop",
   },
   {
     title: "Laundry & Garment Dyeing",
     description:
       "Efficient and sustainable laundry and dyeing systems that enhance garment quality while reducing resource consumption.",
+    image:
+      "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?q=80&w=1200&auto=format&fit=crop",
   },
 ];
 
@@ -2675,8 +2833,7 @@ const whyChoose = [
   },
   {
     title: "Production-Proven Equipment",
-    description:
-      "Every machine we supply is selected for reliability, performance, and long-term value.",
+    description: "Every machine we supply is selected for reliability, performance, and long-term value.",
   },
   {
     title: "End-to-End Support",
@@ -2698,9 +2855,6 @@ const industries = [
   "Industrial & technical textiles",
 ];
 
-// The 8 brands. Swap these `image` paths for your actual logo files
-// (e.g. in /public/logos/) once you've uploaded them — see below for how
-// that works.
 const brandItems = [
   { image: "/logos/atexco.png", text: "Atexco" },
   { image: "/logos/ferretto-group.png", text: "Ferretto Group" },
@@ -2719,12 +2873,9 @@ const fadeUp = {
 
 const stagger = {
   hidden: {},
-  show: {
-    transition: { staggerChildren: 0.12 },
-  },
+  show: { transition: { staggerChildren: 0.12 } },
 };
 
-/** React Bits-style cursor-tracking spotlight glow, inlined locally for this page. */
 function SpotlightCard({ children, className = "", spotlightColor = "rgba(220, 38, 38, 0.12)" }) {
   const ref = useRef(null);
   const [pos, setPos] = useState({ x: 50, y: 50 });
@@ -2759,7 +2910,6 @@ function SpotlightCard({ children, className = "", spotlightColor = "rgba(220, 3
   );
 }
 
-/** React Bits-style animated dot-grid background, inlined locally for this page. */
 function DotGrid({ className = "" }) {
   return (
     <div className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}>
@@ -2791,20 +2941,12 @@ function DotGrid({ className = "" }) {
 
 export default function Home() {
   const heroRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.2]);
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden bg-neutral-100">
-      {/* Hero — AeroShards WebGPU background, inlined above in this same file */}
-      <section
-        ref={heroRef}
-        className="relative bg-[#1A1A1A] text-white text-center px-6 py-40 overflow-hidden"
-      >
+      <section ref={heroRef} className="relative bg-[#1A1A1A] text-white text-center px-6 py-40 overflow-hidden">
         <div className="absolute inset-0">
           <AeroShards
             backgroundColor="#1A1A1A"
@@ -2840,10 +2982,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-neutral-100 pointer-events-none" />
           <div
             className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(60% 45% at 50% 42%, rgba(0,0,0,0.32), transparent 70%)",
-            }}
+            style={{ background: "radial-gradient(60% 45% at 50% 42%, rgba(0,0,0,0.32), transparent 70%)" }}
           />
         </div>
 
@@ -2860,8 +2999,7 @@ export default function Home() {
               className="text-white"
               style={{
                 WebkitTextStroke: "1.5px #DC2626",
-                textShadow:
-                  "0 2px 4px rgba(0,0,0,0.8), 0 0 28px rgba(0,0,0,0.6)",
+                textShadow: "0 2px 4px rgba(0,0,0,0.8), 0 0 28px rgba(0,0,0,0.6)",
               }}
             >
               Manufacturing Solutions
@@ -2890,7 +3028,6 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Intro blurb */}
       <motion.section
         initial="hidden"
         whileInView="show"
@@ -2899,17 +3036,13 @@ export default function Home() {
         className="bg-neutral-100 text-black text-center px-6 pb-24"
       >
         <p className="max-w-3xl mx-auto text-black/70 text-lg sm:text-xl">
-          Rightback supplies world-class apparel manufacturing technology to
-          factories across Southern Africa. From sewing and automation to
-          cutting, finishing, printing, and digital systems, we help
-          manufacturers increase efficiency, quality, and output,{" "}
+          Rightback supplies world-class apparel manufacturing technology to factories across Southern Africa.
+          From sewing and automation to cutting, finishing, printing, and digital systems, we help manufacturers
+          increase efficiency, quality, and output,{" "}
           <span className="font-semibold text-black">without compromise.</span>
         </p>
       </motion.section>
 
-      {/* Proven, production-ready machinery + brand gallery.
-          CircularGallery is inlined above in this same file.
-          Replace brandItems' image paths with your 8 actual brand logos. */}
       <section className="bg-white px-6 py-28">
         <motion.div
           initial="hidden"
@@ -2918,43 +3051,31 @@ export default function Home() {
           variants={fadeUp}
           className="max-w-4xl mx-auto text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-5xl font-bold text-black mb-6">
-            Proven, production-ready machinery
-          </h2>
+          <h2 className="text-3xl sm:text-5xl font-bold text-black mb-6">Proven, production-ready machinery</h2>
           <p className="text-black/70 text-lg sm:text-xl">
-            For over two decades, Rightback has partnered with leading global
-            manufacturers to deliver proven, production-ready machinery to
-            the garment, denim, and textile industries. We don&apos;t just
-            sell machines, we provide complete production solutions, backed
-            by technical expertise, trusted brands, and long-term support.
+            For over two decades, Rightback has partnered with leading global manufacturers to deliver proven,
+            production-ready machinery to the garment, denim, and textile industries. We don&apos;t just sell
+            machines, we provide complete production solutions, backed by technical expertise, trusted brands,
+            and long-term support.
           </p>
         </motion.div>
 
-        {/* Tile size is driven by this wrapper's HEIGHT (taller = bigger
-            logos); roughly how many are visible at once is driven by the
-            WIDTH-to-HEIGHT ratio. These numbers are tuned to show ~6 tiles
-            at a comfortable size — nudge `height` up/down to resize the
-            tiles, and the width below to change how many fit on screen. */}
-        <div
-          className="mx-auto"
-          style={{ width: "960px", maxWidth: "100%", height: "340px", position: "relative" }}
-        >
+        <div className="mx-auto" style={{ width: "960px", maxWidth: "100%", height: "340px", position: "relative" }}>
           <CircularGallery
-  items={brandItems}
-  bend={1}
-  textColor="#1A1A1A"
-  borderRadius={0.05}
-  scrollEase={0.05}
-  fontUrl=""
-  font="bold 30px Orbitron"
-  scrollSpeed={2}
-  autoplaySpeed={0.05}
-/>
+            items={brandItems}
+            bend={1}
+            textColor="#1A1A1A"
+            borderRadius={0.05}
+            scrollEase={0.05}
+            fontUrl=""
+            font="bold 30px Orbitron"
+            scrollSpeed={2}
+            autoplaySpeed={0.05}
+          />
         </div>
       </section>
 
-      {/* What we do */}
-      <section className="bg-neutral-100 px-6 py-28">
+      <section className="bg-neutral-100 px-6 pt-28 pb-0">
         <motion.div
           initial="hidden"
           whileInView="show"
@@ -2962,59 +3083,38 @@ export default function Home() {
           variants={fadeUp}
           className="max-w-6xl mx-auto text-center mb-16"
         >
-          <p className="text-red font-semibold tracking-wide uppercase text-sm mb-2">
-            What we do
-          </p>
-          <h2 className="text-3xl sm:text-5xl font-bold text-black">
-            Complete Apparel Production Solutions
-          </h2>
+          <p className="text-red font-semibold tracking-wide uppercase text-sm mb-2">What we do</p>
+          <h2 className="text-3xl sm:text-5xl font-bold text-black">Complete Apparel Production Solutions</h2>
           <p className="mt-4 max-w-2xl mx-auto text-black/70 text-lg">
-            Rightback offers end-to-end equipment for every stage of garment
-            manufacturing, helping you streamline operations and stay
-            competitive in a fast-moving industry.
+            Rightback offers end-to-end equipment for every stage of garment manufacturing, helping you
+            streamline operations and stay competitive in a fast-moving industry.
           </p>
         </motion.div>
 
-        <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.15 }}
-          variants={stagger}
-          className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
+        <ScrollStack itemDistance={120} itemScale={0.03} itemStackDistance={30} baseScale={0.86} blurAmount={0}>
           {whatWeDo.map((item) => (
-            <motion.div
-              key={item.title}
-              variants={fadeUp}
-              whileHover={{ y: -10, scale: 1.03 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              <SpotlightCard className="bg-white rounded-2xl p-6 h-full flex flex-col justify-between shadow-sm hover:shadow-xl border border-black/5 hover:border-red/40 transition-all duration-300">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3 text-black">{item.title}</h3>
-                  <p className="text-black/70 text-sm">{item.description}</p>
+            <ScrollStackItem key={item.title}>
+              <div className="bg-[#1A1A1A] rounded-3xl overflow-hidden h-full flex flex-col md:flex-row shadow-2xl">
+                <div className="md:w-1/2 h-64 md:h-auto">
+                  <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                 </div>
-                <span className="mt-6 inline-block text-red text-sm font-medium cursor-pointer">
-                  Learn more →
-                </span>
-              </SpotlightCard>
-            </motion.div>
+                <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center text-white">
+                  <h3 className="text-2xl md:text-3xl font-bold mb-4">{item.title}</h3>
+                  <p className="text-white/70 text-base md:text-lg">{item.description}</p>
+                  <span className="mt-6 inline-block text-red text-sm font-medium cursor-pointer w-fit">
+                    Learn more →
+                  </span>
+                </div>
+              </div>
+            </ScrollStackItem>
           ))}
-        </motion.div>
+        </ScrollStack>
 
-        <motion.p
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="text-center mt-16 text-black/60"
-        >
-          Each solution is selected for performance, reliability, and
-          real-world production demands.
-        </motion.p>
+        <p className="text-center pb-28 text-black/60 max-w-2xl mx-auto">
+          Each solution is selected for performance, reliability, and real-world production demands.
+        </p>
       </section>
 
-      {/* Why choose us */}
       <section className="bg-white px-6 py-28">
         <motion.h2
           initial="hidden"
@@ -3046,7 +3146,6 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Industries we serve */}
       <section className="px-6 py-28 bg-neutral-100 overflow-hidden">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <motion.div
@@ -3084,7 +3183,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
       <motion.section
         initial="hidden"
         whileInView="show"
@@ -3096,9 +3194,8 @@ export default function Home() {
           Power Your Production with Smarter Technology
         </h2>
         <p className="mt-6 max-w-2xl mx-auto text-black/70 text-lg">
-          Whether you&apos;re expanding capacity, improving efficiency, or
-          investing in automation, Rightback has the technology, and the
-          expertise, to support your growth.
+          Whether you&apos;re expanding capacity, improving efficiency, or investing in automation, Rightback has
+          the technology, and the expertise, to support your growth.
         </p>
         <Link
           href="/contact"

@@ -2796,32 +2796,34 @@ function ScrollStack({
 
 const whatWeDo = [
   {
-    title: "Sewing & Automation",
+    title: "Sewing & Specialised Automation",
     description:
-      "High-performance sewing machines and engineered workstations built for speed, precision, and consistency.",
-    image:
-      "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=1200&auto=format&fit=crop",
+      "High-performance sewing and automation solutions designed for speed, precision, and consistent quality across all garment types.",
+    image: "/whatwedo/SSA.png",
   },
   {
-    title: "Cutting & CAD Solutions",
+    title: "Cutting & CAD Systems",
     description:
-      "CNC cutting and pattern design systems that improve accuracy, reduce waste, and speed up production.",
-    image:
-      "https://images.unsplash.com/photo-1581093458791-9d42e0c5a2f5?q=80&w=1200&auto=format&fit=crop",
+      "Digital cutting and CAD solutions that improve accuracy, reduce waste, and streamline production planning.",
+    image: "/whatwedo/CCS.png",
   },
   {
     title: "Printing, Finishing & Laser",
     description:
       "Modern printing and laser finishing technologies that deliver premium results with lower water, energy, and labour usage.",
-    image:
-      "https://images.unsplash.com/photo-1614854262340-ab1ca7d079c7?q=80&w=1200&auto=format&fit=crop",
+    image: "/whatwedo/PFL.png",
   },
   {
     title: "Laundry & Garment Dyeing",
     description:
       "Efficient and sustainable laundry and dyeing systems that enhance garment quality while reducing resource consumption.",
-    image:
-      "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?q=80&w=1200&auto=format&fit=crop",
+    image: "/whatwedo/LYD.png",
+  },
+  {
+    title: "Denim & Jeans Technology",
+    description:
+      "Advanced machinery purpose-built for efficient, high-precision denim and jeans production.",
+    image: "/whatwedo/DJT.png",
   },
 ];
 

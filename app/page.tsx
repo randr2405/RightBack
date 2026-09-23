@@ -2890,20 +2890,42 @@ export default function Home() {
         </p>
       </motion.section>
 
-      {/* Brand gallery — CircularGallery, inlined above in this same file.
+      {/* Proven, production-ready machinery + brand gallery.
+          CircularGallery is inlined above in this same file.
           Replace brandItems' image paths with your 9 actual brand logos. */}
-      <section className="bg-white">
-        <div style={{ height: "600px", position: "relative" }}>
-          <CircularGallery
-            items={brandItems}
-            bend={1}
-            textColor="#1A1A1A"
-            borderRadius={0.05}
-            scrollEase={0.05}
-            fontUrl=""
-            font="bold 30px Orbitron"
-            scrollSpeed={2}
-          />
+      <section className="bg-white px-6 py-28">
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.4 }}
+          variants={fadeUp}
+          className="max-w-4xl mx-auto text-center mb-16"
+        >
+          <h2 className="text-3xl sm:text-5xl font-bold text-black mb-6">
+            Proven, production-ready machinery
+          </h2>
+          <p className="text-black/70 text-lg sm:text-xl">
+            For over two decades, Rightback has partnered with leading global
+            manufacturers to deliver proven, production-ready machinery to
+            the garment, denim, and textile industries. We don&apos;t just
+            sell machines, we provide complete production solutions, backed
+            by technical expertise, trusted brands, and long-term support.
+          </p>
+        </motion.div>
+
+        <div className="max-w-5xl mx-auto">
+          <div style={{ height: "420px", position: "relative" }}>
+            <CircularGallery
+              items={brandItems}
+              bend={1}
+              textColor="#1A1A1A"
+              borderRadius={0.05}
+              scrollEase={0.05}
+              fontUrl=""
+              font="bold 30px Orbitron"
+              scrollSpeed={2}
+            />
+          </div>
         </div>
       </section>
 

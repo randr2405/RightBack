@@ -2688,18 +2688,18 @@ const industries = [
   "Industrial & technical textiles",
 ];
 
-// The 9 brands shown in the logo strip screenshot. Swap these `image` paths
-// for your actual logo files (e.g. in /public/logos/) and update the names.
+// The 8 brands. Swap these `image` paths for your actual logo files
+// (e.g. in /public/logos/) once you've uploaded them — see below for how
+// that works.
 const brandItems = [
-  { image: "/logos/brand-1.png", text: "Brand One" },
-  { image: "/logos/brand-2.png", text: "Inedit" },
-  { image: "/logos/brand-3.png", text: "Gemini" },
-  { image: "/logos/brand-4.png", text: "Macpi" },
-  { image: "/logos/brand-5.png", text: "Maica" },
-  { image: "/logos/brand-6.png", text: "Brand Six" },
-  { image: "/logos/brand-7.png", text: "Brand Seven" },
-  { image: "/logos/brand-8.png", text: "Brand Eight" },
-  { image: "/logos/brand-9.png", text: "Brand Nine" },
+  { image: "/logos/brand-1.png", text: "Atexco" },
+  { image: "/logos/brand-2.png", text: "Yilmak" },
+  { image: "/logos/brand-3.png", text: "Morgan Tecnica" },
+  { image: "/logos/brand-4.png", text: "Inedit" },
+  { image: "/logos/brand-5.png", text: "Gemini" },
+  { image: "/logos/brand-6.png", text: "Macpi" },
+  { image: "/logos/brand-7.png", text: "Maica" },
+  { image: "/logos/brand-8.png", text: "Ferretto Group" },
 ];
 
 const fadeUp = {
@@ -2899,7 +2899,7 @@ export default function Home() {
 
       {/* Proven, production-ready machinery + brand gallery.
           CircularGallery is inlined above in this same file.
-          Replace brandItems' image paths with your 9 actual brand logos. */}
+          Replace brandItems' image paths with your 8 actual brand logos. */}
       <section className="bg-white px-6 py-28">
         <motion.div
           initial="hidden"

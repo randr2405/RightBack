@@ -2947,7 +2947,7 @@ export default function Home() {
             scrollEase={0.05}
             fontUrl=""
             font="bold 30px Orbitron"
-            scrollSpeed={0.5}
+            scrollSpeed={0.05}
           />
         </div>
       </section>

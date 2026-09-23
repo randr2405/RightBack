@@ -1098,7 +1098,7 @@ const createRenderGraph = (gpu, outputSize, bloomSize = resolveBloomSize(outputS
     viewport: [outputSize[0], outputSize[1], 1 / outputSize[0], 1 / outputSize[1]],
     bloomInfo: [1 / bloomSize[0], 1 / bloomSize[1], 0.2, 0.12],
     finishing: [0.5, 0.05, 0.0075, 0],
-    background: [10 / 255, 10 / 255, 10 / 255, 1],
+    background: [26 / 255, 26 / 255, 26 / 255, 1],
     temporal: [0, 0, 0, 0],
     tint: [220 / 255, 38 / 255, 38 / 255, 1],
   });
@@ -1146,7 +1146,7 @@ const createRenderGraph = (gpu, outputSize, bloomSize = resolveBloomSize(outputS
   const asciiTarget = target(gpu, { size: [1, 1], format: "rgba8unorm", label: "aero-shards-ascii-cells" });
   const styleParams = uniforms(gpu, {
     viewport: [outputSize[0], outputSize[1], 6, 10],
-    background: [10 / 255, 10 / 255, 10 / 255, 1],
+    background: [26 / 255, 26 / 255, 26 / 255, 1],
     mode: [0, 0, 0, 0],
   });
   const asciiEffect = effect(gpu, ASCII_CELL_SHADER, {
@@ -1217,7 +1217,7 @@ const prepareRenderGraph = async (graph, outputFormat) => {
 
 /** WebGPU shard field, inlined here so the whole hero lives in this one file. */
 function AeroShards({
-  backgroundColor = "#0A0A0A",
+  backgroundColor = "#1A1A1A",
   shardColor = "#DC2626",
   accentColor = "#EF4444",
   placement = "full",
@@ -1273,7 +1273,7 @@ function AeroShards({
   const effectDetail = resolvedEffect === EFFECTS.none ? 1 : 0.4;
   const effectSize = resolvedEffect === EFFECTS.none ? 1 : 1.75;
   const resolvedScale = clamp(scale, 0.5, 2.5);
-  const resolvedBackground = parseColor(backgroundColor, "#0A0A0A");
+  const resolvedBackground = parseColor(backgroundColor, "#1A1A1A");
   const resolvedShardColor = parseColor(shardColor, "#DC2626");
   const resolvedAccentColor = parseColor(accentColor, "#EF4444");
   const resolvedSpread = clamp(spread, 0.15, 1.1);
@@ -2132,11 +2132,11 @@ export default function Home() {
       {/* Hero — AeroShards WebGPU background, inlined above in this same file */}
       <section
         ref={heroRef}
-        className="relative bg-[#0A0A0A] text-white text-center px-6 py-40 overflow-hidden"
+        className="relative bg-[#1A1A1A] text-white text-center px-6 py-40 overflow-hidden"
       >
         <div className="absolute inset-0">
           <AeroShards
-            backgroundColor="#0A0A0A"
+            backgroundColor="#1A1A1A"
             shardColor="#DC2626"
             accentColor="#EF4444"
             placement="full"
@@ -2171,7 +2171,7 @@ export default function Home() {
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                "radial-gradient(60% 45% at 50% 42%, rgba(0,0,0,0.45), transparent 70%)",
+                "radial-gradient(60% 45% at 50% 42%, rgba(0,0,0,0.32), transparent 70%)",
             }}
           />
         </div>

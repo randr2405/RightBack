@@ -3307,13 +3307,13 @@ function IndustriesFront() {
 
 function IndustriesBack() {
   return (
-    <div className="w-full h-full bg-[#1A1A1A] p-8 md:p-10 flex flex-col justify-center gap-5">
+    <div className="w-full h-full bg-[#1A1A1A] p-8 md:p-10 flex flex-col items-center justify-center gap-6 sm:gap-8">
       {industriesReveal.map(({ label, icon: Icon }) => (
-        <div key={label} className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red/10 text-red">
-            <Icon className="h-4 w-4" />
+        <div key={label} className="flex items-center gap-4">
+          <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full bg-red/10 text-red">
+            <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
           </div>
-          <span className="text-white/90 text-sm sm:text-base">{label}</span>
+          <span className="text-white/90 text-xl sm:text-3xl font-medium">{label}</span>
         </div>
       ))}
     </div>

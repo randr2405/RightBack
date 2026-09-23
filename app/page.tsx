@@ -11,6 +11,7 @@ import {
   ReactNode,
 } from "react";
 import { draw, effect, frame, init, sampler, surface, target, uniforms } from "vgpu";
+import { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } from "ogl";
 import Footer from "@/components/Footer";
 import AnimatedCounter from "@/components/AnimatedCounter";
 
@@ -1984,6 +1985,645 @@ function AeroShards({
 }
 
 /* ------------------------------------------------------------------ */
+/*  CircularGallery — inlined directly into the home page (no separate */
+/*  component file). Used below for the "trusted brands" section.      */
+/*  NOTE: this still relies on the CSS class names from                */
+/*  CircularGallery.css (e.g. `.circular-gallery`). Keep that           */
+/*  stylesheet imported globally (e.g. in your root layout/globals.css) */
+/*  since a plain .jsx page file cannot inline a CSS file's rules.      */
+/* ------------------------------------------------------------------ */
+
+function cgDebounce(func, wait) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+function cgLerp(p1, p2, t) {
+  return p1 + (p2 - p1) * t;
+}
+
+function cgAutoBind(instance) {
+  const proto = Object.getPrototypeOf(instance);
+  Object.getOwnPropertyNames(proto).forEach((key) => {
+    if (key !== "constructor" && typeof instance[key] === "function") {
+      instance[key] = instance[key].bind(instance);
+    }
+  });
+}
+
+const CG_DEFAULT_FONT = 'bold 30px Figtree';
+// Figtree is not guaranteed to be available on the host page, so the component
+// loads it on demand whenever the default font is used.
+const CG_DEFAULT_FONT_URL = 'https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&display=swap';
+
+function cgDeriveFontFamilyFromUrl(url) {
+  const fileName = (url.split('/').pop() || 'custom-font').split('?')[0];
+  const base = fileName.replace(/\.(woff2?|ttf|otf|eot)$/i, '');
+  return base.replace(/[^a-zA-Z0-9-_ ]/g, '').trim() || 'CircularGalleryFont';
+}
+
+async function cgLoadFontFromStylesheet(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch font stylesheet (${response.status})`);
+  const cssText = await response.text();
+  const faceBlocks = cssText.match(/@font-face\s*{[^}]*}/g) || [];
+  let family = null;
+  const fontFaces = [];
+  for (const block of faceBlocks) {
+    const familyMatch = block.match(/font-family:\s*['"]?([^;'"]+)['"]?/);
+    const urlMatch = block.match(/url\(\s*['"]?([^'")]+)['"]?\s*\)/);
+    if (!familyMatch || !urlMatch) continue;
+    family = familyMatch[1].trim();
+    const descriptors = {};
+    const weightMatch = block.match(/font-weight:\s*([^;]+);/);
+    const styleMatch = block.match(/font-style:\s*([^;]+);/);
+    const rangeMatch = block.match(/unicode-range:\s*([^;]+);/);
+    if (weightMatch) descriptors.weight = weightMatch[1].trim();
+    if (styleMatch) descriptors.style = styleMatch[1].trim();
+    if (rangeMatch) descriptors.unicodeRange = rangeMatch[1].trim();
+    fontFaces.push(new FontFace(family, `url(${urlMatch[1]})`, descriptors));
+  }
+  if (!family) throw new Error('No @font-face rule found in the stylesheet');
+  await Promise.allSettled(
+    fontFaces.map(async (face) => {
+      await face.load();
+      document.fonts.add(face);
+    })
+  );
+  return family;
+}
+
+async function cgLoadFontFromFile(url) {
+  const family = cgDeriveFontFamilyFromUrl(url);
+  const fontFace = new FontFace(family, `url(${url})`);
+  await fontFace.load();
+  document.fonts.add(fontFace);
+  return family;
+}
+
+async function cgLoadCustomFont(fontUrl) {
+  const isStylesheet = fontUrl.includes('fonts.googleapis.com') || /\.css(\?.*)?$/i.test(fontUrl);
+  return isStylesheet ? cgLoadFontFromStylesheet(fontUrl) : cgLoadFontFromFile(fontUrl);
+}
+
+// Loads `fontUrl` (a stylesheet such as a Google Fonts URL, or a direct font
+// file) and returns a canvas-ready font string that keeps the size/weight from
+// `font` but swaps in the freshly loaded family. Falls back to `font` on error.
+async function cgResolveFont(font, fontUrl) {
+  // Use the bundled Figtree stylesheet when the caller relies on the default
+  // font, otherwise honor the explicit `fontUrl`.
+  const effectiveUrl = fontUrl || (font === CG_DEFAULT_FONT ? CG_DEFAULT_FONT_URL : null);
+  if (!effectiveUrl) {
+    // A custom family was supplied without a URL – make sure it is ready (in
+    // case the host page declares it) before we draw it to the canvas,
+    // otherwise the first paint silently falls back to a system font.
+    if (document.fonts && document.fonts.load) {
+      try {
+        await document.fonts.load(font);
+        await document.fonts.ready;
+      } catch {
+        // Ignore – fall back to whatever the browser provides.
+      }
+    }
+    return font;
+  }
+  try {
+    const family = await cgLoadCustomFont(effectiveUrl);
+    const sizeMatch = font.match(/^\s*(.*?\d+px)/);
+    const prefix = sizeMatch ? sizeMatch[1].trim() : 'bold 30px';
+    const resolved = `${prefix} "${family}"`;
+    if (document.fonts && document.fonts.load) {
+      try {
+        await document.fonts.load(resolved);
+      } catch {
+        // Ignore – we still attempt to render with the requested font.
+      }
+    }
+    return resolved;
+  } catch (error) {
+    console.error('CircularGallery: unable to load font from', fontUrl, error);
+    return font;
+  }
+}
+
+function cgGetFontSize(font) {
+  const match = font.match(/(\d+)px/);
+  return match ? parseInt(match[1], 10) : 30;
+}
+
+function cgCreateTextTexture(gl, text, font = 'bold 30px monospace', color = 'black') {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  context.font = font;
+  const metrics = context.measureText(text);
+  const textWidth = Math.ceil(metrics.width);
+  const textHeight = Math.ceil(cgGetFontSize(font) * 1.2);
+  canvas.width = textWidth + 20;
+  canvas.height = textHeight + 20;
+  context.font = font;
+  context.fillStyle = color;
+  context.textBaseline = 'middle';
+  context.textAlign = 'center';
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillText(text, canvas.width / 2, canvas.height / 2);
+  const texture = new Texture(gl, { generateMipmaps: false });
+  texture.image = canvas;
+  return { texture, width: canvas.width, height: canvas.height };
+}
+
+class CGTitle {
+  constructor({ gl, plane, renderer, text, textColor = '#545050', font = '30px sans-serif' }) {
+    cgAutoBind(this);
+    this.gl = gl;
+    this.plane = plane;
+    this.renderer = renderer;
+    this.text = text;
+    this.textColor = textColor;
+    this.font = font;
+    this.createMesh();
+  }
+  createMesh() {
+    const { texture, width, height } = cgCreateTextTexture(this.gl, this.text, this.font, this.textColor);
+    const geometry = new Plane(this.gl);
+    const program = new Program(this.gl, {
+      vertex: `
+        attribute vec3 position;
+        attribute vec2 uv;
+        uniform mat4 modelViewMatrix;
+        uniform mat4 projectionMatrix;
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragment: `
+        precision highp float;
+        uniform sampler2D tMap;
+        varying vec2 vUv;
+        void main() {
+          vec4 color = texture2D(tMap, vUv);
+          if (color.a < 0.1) discard;
+          gl_FragColor = color;
+        }
+      `,
+      uniforms: { tMap: { value: texture } },
+      transparent: true,
+    });
+    this.mesh = new Mesh(this.gl, { geometry, program });
+    const aspect = width / height;
+    const textHeight = this.plane.scale.y * 0.15;
+    const textWidth = textHeight * aspect;
+    this.mesh.scale.set(textWidth, textHeight, 1);
+    this.mesh.position.y = -this.plane.scale.y * 0.5 - textHeight * 0.5 - 0.05;
+    this.mesh.setParent(this.plane);
+  }
+}
+
+class CGMedia {
+  constructor({
+    geometry,
+    gl,
+    image,
+    index,
+    length,
+    renderer,
+    scene,
+    screen,
+    text,
+    viewport,
+    bend,
+    textColor,
+    borderRadius = 0,
+    font,
+  }) {
+    this.extra = 0;
+    this.geometry = geometry;
+    this.gl = gl;
+    this.image = image;
+    this.index = index;
+    this.length = length;
+    this.renderer = renderer;
+    this.scene = scene;
+    this.screen = screen;
+    this.text = text;
+    this.viewport = viewport;
+    this.bend = bend;
+    this.textColor = textColor;
+    this.borderRadius = borderRadius;
+    this.font = font;
+    this.createShader();
+    this.createMesh();
+    this.createTitle();
+    this.onResize();
+  }
+  createShader() {
+    const texture = new Texture(this.gl, {
+      generateMipmaps: true,
+    });
+    this.program = new Program(this.gl, {
+      depthTest: false,
+      depthWrite: false,
+      vertex: `
+        precision highp float;
+        attribute vec3 position;
+        attribute vec2 uv;
+        uniform mat4 modelViewMatrix;
+        uniform mat4 projectionMatrix;
+        uniform float uTime;
+        uniform float uSpeed;
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          vec3 p = position;
+          p.z = (sin(p.x * 4.0 + uTime) * 1.5 + cos(p.y * 2.0 + uTime) * 1.5) * (0.1 + uSpeed * 0.5);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+        }
+      `,
+      fragment: `
+        precision highp float;
+        uniform vec2 uImageSizes;
+        uniform vec2 uPlaneSizes;
+        uniform sampler2D tMap;
+        uniform float uBorderRadius;
+        varying vec2 vUv;
+        
+        float roundedBoxSDF(vec2 p, vec2 b, float r) {
+          vec2 d = abs(p) - b;
+          return length(max(d, vec2(0.0))) + min(max(d.x, d.y), 0.0) - r;
+        }
+        
+        void main() {
+          vec2 ratio = vec2(
+            min((uPlaneSizes.x / uPlaneSizes.y) / (uImageSizes.x / uImageSizes.y), 1.0),
+            min((uPlaneSizes.y / uPlaneSizes.x) / (uImageSizes.y / uImageSizes.x), 1.0)
+          );
+          vec2 uv = vec2(
+            vUv.x * ratio.x + (1.0 - ratio.x) * 0.5,
+            vUv.y * ratio.y + (1.0 - ratio.y) * 0.5
+          );
+          vec4 color = texture2D(tMap, uv);
+          
+          float d = roundedBoxSDF(vUv - 0.5, vec2(0.5 - uBorderRadius), uBorderRadius);
+          
+          // Smooth antialiasing for edges
+          float edgeSmooth = 0.002;
+          float alpha = 1.0 - smoothstep(-edgeSmooth, edgeSmooth, d);
+          
+          gl_FragColor = vec4(color.rgb, alpha);
+        }
+      `,
+      uniforms: {
+        tMap: { value: texture },
+        uPlaneSizes: { value: [0, 0] },
+        uImageSizes: { value: [0, 0] },
+        uSpeed: { value: 0 },
+        uTime: { value: 100 * Math.random() },
+        uBorderRadius: { value: this.borderRadius },
+      },
+      transparent: true,
+    });
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = this.image;
+    img.onload = () => {
+      texture.image = img;
+      this.program.uniforms.uImageSizes.value = [img.naturalWidth, img.naturalHeight];
+    };
+  }
+  createMesh() {
+    this.plane = new Mesh(this.gl, {
+      geometry: this.geometry,
+      program: this.program,
+    });
+    this.plane.setParent(this.scene);
+  }
+  createTitle() {
+    this.title = new CGTitle({
+      gl: this.gl,
+      plane: this.plane,
+      renderer: this.renderer,
+      text: this.text,
+      textColor: this.textColor,
+      font: this.font,
+    });
+  }
+  update(scroll, direction) {
+    this.plane.position.x = this.x - scroll.current - this.extra;
+
+    const x = this.plane.position.x;
+    const H = this.viewport.width / 2;
+
+    if (this.bend === 0) {
+      this.plane.position.y = 0;
+      this.plane.rotation.z = 0;
+    } else {
+      const B_abs = Math.abs(this.bend);
+      const R = (H * H + B_abs * B_abs) / (2 * B_abs);
+      const effectiveX = Math.min(Math.abs(x), H);
+
+      const arc = R - Math.sqrt(R * R - effectiveX * effectiveX);
+      if (this.bend > 0) {
+        this.plane.position.y = -arc;
+        this.plane.rotation.z = -Math.sign(x) * Math.asin(effectiveX / R);
+      } else {
+        this.plane.position.y = arc;
+        this.plane.rotation.z = Math.sign(x) * Math.asin(effectiveX / R);
+      }
+    }
+
+    this.speed = scroll.current - scroll.last;
+    this.program.uniforms.uTime.value += 0.04;
+    this.program.uniforms.uSpeed.value = this.speed;
+
+    const planeOffset = this.plane.scale.x / 2;
+    const viewportOffset = this.viewport.width / 2;
+    this.isBefore = this.plane.position.x + planeOffset < -viewportOffset;
+    this.isAfter = this.plane.position.x - planeOffset > viewportOffset;
+    if (direction === 'right' && this.isBefore) {
+      this.extra -= this.widthTotal;
+      this.isBefore = this.isAfter = false;
+    }
+    if (direction === 'left' && this.isAfter) {
+      this.extra += this.widthTotal;
+      this.isBefore = this.isAfter = false;
+    }
+  }
+  onResize({ screen, viewport } = {}) {
+    if (screen) this.screen = screen;
+    if (viewport) {
+      this.viewport = viewport;
+      if (this.plane.program.uniforms.uViewportSizes) {
+        this.plane.program.uniforms.uViewportSizes.value = [this.viewport.width, this.viewport.height];
+      }
+    }
+    this.scale = this.screen.height / 1500;
+    this.plane.scale.y = (this.viewport.height * (900 * this.scale)) / this.screen.height;
+    this.plane.scale.x = (this.viewport.width * (700 * this.scale)) / this.screen.width;
+    this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
+    this.padding = 2;
+    this.width = this.plane.scale.x + this.padding;
+    this.widthTotal = this.width * this.length;
+    this.x = this.width * this.index;
+  }
+}
+
+class CGApp {
+  constructor(
+    container,
+    {
+      items,
+      bend,
+      textColor = '#ffffff',
+      borderRadius = 0,
+      font = 'bold 30px Figtree',
+      scrollSpeed = 2,
+      scrollEase = 0.05,
+    } = {}
+  ) {
+    document.documentElement.classList.remove('no-js');
+    this.container = container;
+    this.scrollSpeed = scrollSpeed;
+    this.scroll = { ease: scrollEase, current: 0, target: 0, last: 0 };
+    this.onCheckDebounce = cgDebounce(this.onCheck, 200);
+    this.createRenderer();
+    this.createCamera();
+    this.createScene();
+    this.onResize();
+    this.createGeometry();
+    this.createMedias(items, bend, textColor, borderRadius, font);
+    this.update();
+    this.addEventListeners();
+  }
+  createRenderer() {
+    this.renderer = new Renderer({
+      alpha: true,
+      antialias: true,
+      dpr: Math.min(window.devicePixelRatio || 1, 2),
+    });
+    this.gl = this.renderer.gl;
+    this.gl.clearColor(0, 0, 0, 0);
+    this.container.appendChild(this.gl.canvas);
+  }
+  createCamera() {
+    this.camera = new Camera(this.gl);
+    this.camera.fov = 45;
+    this.camera.position.z = 20;
+  }
+  createScene() {
+    this.scene = new Transform();
+  }
+  createGeometry() {
+    this.planeGeometry = new Plane(this.gl, {
+      heightSegments: 50,
+      widthSegments: 100,
+    });
+  }
+  createMedias(items, bend = 1, textColor, borderRadius, font) {
+    const defaultItems = [
+      { image: `https://picsum.photos/seed/1/800/600?grayscale`, text: 'Bridge' },
+      { image: `https://picsum.photos/seed/2/800/600?grayscale`, text: 'Desk Setup' },
+      { image: `https://picsum.photos/seed/3/800/600?grayscale`, text: 'Waterfall' },
+      { image: `https://picsum.photos/seed/4/800/600?grayscale`, text: 'Strawberries' },
+      { image: `https://picsum.photos/seed/5/800/600?grayscale`, text: 'Deep Diving' },
+      { image: `https://picsum.photos/seed/16/800/600?grayscale`, text: 'Train Track' },
+      { image: `https://picsum.photos/seed/17/800/600?grayscale`, text: 'Santorini' },
+      { image: `https://picsum.photos/seed/8/800/600?grayscale`, text: 'Blurry Lights' },
+      { image: `https://picsum.photos/seed/9/800/600?grayscale`, text: 'New York' },
+      { image: `https://picsum.photos/seed/10/800/600?grayscale`, text: 'Good Boy' },
+      { image: `https://picsum.photos/seed/21/800/600?grayscale`, text: 'Coastline' },
+      { image: `https://picsum.photos/seed/12/800/600?grayscale`, text: 'Palm Trees' },
+    ];
+    const galleryItems = items && items.length ? items : defaultItems;
+    this.mediasImages = galleryItems.concat(galleryItems);
+    this.medias = this.mediasImages.map((data, index) => {
+      return new CGMedia({
+        geometry: this.planeGeometry,
+        gl: this.gl,
+        image: data.image,
+        index,
+        length: this.mediasImages.length,
+        renderer: this.renderer,
+        scene: this.scene,
+        screen: this.screen,
+        text: data.text,
+        viewport: this.viewport,
+        bend,
+        textColor,
+        borderRadius,
+        font,
+      });
+    });
+  }
+  onTouchDown(e) {
+    this.isDown = true;
+    this.scroll.position = this.scroll.current;
+    this.start = e.touches ? e.touches[0].clientX : e.clientX;
+  }
+  onTouchMove(e) {
+    if (!this.isDown) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const distance = (this.start - x) * (this.scrollSpeed * 0.025);
+    this.scroll.target = this.scroll.position + distance;
+  }
+  onTouchUp() {
+    this.isDown = false;
+    this.onCheck();
+  }
+  onWheel(e) {
+    const delta = e.deltaY || e.wheelDelta || e.detail;
+    this.scroll.target += (delta > 0 ? this.scrollSpeed : -this.scrollSpeed) * 0.2;
+    this.onCheckDebounce();
+  }
+  onKeyDown(e) {
+    switch (e.key) {
+      case 'ArrowRight':
+        e.preventDefault();
+        this.scroll.target += this.scrollSpeed * 5;
+        this.onCheckDebounce();
+        break;
+
+      case 'ArrowLeft':
+        e.preventDefault();
+        this.scroll.target -= this.scrollSpeed * 5;
+        this.onCheckDebounce();
+        break;
+
+      case 'Home':
+        e.preventDefault();
+        this.scroll.target = 0;
+        this.onCheckDebounce();
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  onCheck() {
+    if (!this.medias || !this.medias[0]) return;
+    const width = this.medias[0].width;
+    const itemIndex = Math.round(Math.abs(this.scroll.target) / width);
+    const item = width * itemIndex;
+    this.scroll.target = this.scroll.target < 0 ? -item : item;
+  }
+  onResize() {
+    this.screen = {
+      width: this.container.clientWidth,
+      height: this.container.clientHeight,
+    };
+    this.renderer.setSize(this.screen.width, this.screen.height);
+    this.camera.perspective({
+      aspect: this.screen.width / this.screen.height,
+    });
+    const fov = (this.camera.fov * Math.PI) / 180;
+    const height = 2 * Math.tan(fov / 2) * this.camera.position.z;
+    const width = height * this.camera.aspect;
+    this.viewport = { width, height };
+    if (this.medias) {
+      this.medias.forEach((media) => media.onResize({ screen: this.screen, viewport: this.viewport }));
+    }
+  }
+  update() {
+    this.scroll.current = cgLerp(this.scroll.current, this.scroll.target, this.scroll.ease);
+    const direction = this.scroll.current > this.scroll.last ? 'right' : 'left';
+    if (this.medias) {
+      this.medias.forEach((media) => media.update(this.scroll, direction));
+    }
+    this.renderer.render({ scene: this.scene, camera: this.camera });
+    this.scroll.last = this.scroll.current;
+    this.raf = window.requestAnimationFrame(this.update.bind(this));
+  }
+  addEventListeners() {
+    this.boundOnResize = this.onResize.bind(this);
+    this.boundOnWheel = this.onWheel.bind(this);
+    this.boundOnTouchDown = this.onTouchDown.bind(this);
+    this.boundOnTouchMove = this.onTouchMove.bind(this);
+    this.boundOnTouchUp = this.onTouchUp.bind(this);
+    this.boundOnKeyDown = this.onKeyDown.bind(this);
+
+    window.addEventListener('resize', this.boundOnResize);
+    window.addEventListener('mousewheel', this.boundOnWheel);
+    window.addEventListener('wheel', this.boundOnWheel);
+    window.addEventListener('mousedown', this.boundOnTouchDown);
+    window.addEventListener('mousemove', this.boundOnTouchMove);
+    window.addEventListener('mouseup', this.boundOnTouchUp);
+    window.addEventListener('touchstart', this.boundOnTouchDown);
+    window.addEventListener('touchmove', this.boundOnTouchMove);
+    window.addEventListener('touchend', this.boundOnTouchUp);
+
+    this.container?.addEventListener('keydown', this.boundOnKeyDown);
+  }
+  destroy() {
+    window.cancelAnimationFrame(this.raf);
+    window.removeEventListener('resize', this.boundOnResize);
+    window.removeEventListener('mousewheel', this.boundOnWheel);
+    window.removeEventListener('wheel', this.boundOnWheel);
+    window.removeEventListener('mousedown', this.boundOnTouchDown);
+    window.removeEventListener('mousemove', this.boundOnTouchMove);
+    window.removeEventListener('mouseup', this.boundOnTouchUp);
+    window.removeEventListener('touchstart', this.boundOnTouchDown);
+    window.removeEventListener('touchmove', this.boundOnTouchMove);
+    window.removeEventListener('touchend', this.boundOnTouchUp);
+    if (this.renderer && this.renderer.gl && this.renderer.gl.canvas.parentNode) {
+      this.renderer.gl.canvas.parentNode.removeChild(this.renderer.gl.canvas);
+    }
+
+    if (this.container) {
+      this.container.removeEventListener('keydown', this.boundOnKeyDown);
+    }
+  }
+}
+
+/** WebGL brand-logo carousel, inlined here so the whole page lives in this one file. */
+function CircularGallery({
+  items,
+  bend = 3,
+  textColor = '#ffffff',
+  borderRadius = 0.05,
+  font = 'bold 30px Figtree',
+  fontUrl,
+  scrollSpeed = 2,
+  scrollEase = 0.05,
+}) {
+  const containerRef = useRef(null);
+  useEffect(() => {
+    if (!containerRef.current) return;
+    let app;
+    let isMounted = true;
+    cgResolveFont(font, fontUrl).then((resolvedFont) => {
+      if (!isMounted || !containerRef.current) return;
+      app = new CGApp(containerRef.current, {
+        items,
+        bend,
+        textColor,
+        borderRadius,
+        font: resolvedFont,
+        scrollSpeed,
+        scrollEase,
+      });
+    });
+
+    return () => {
+      isMounted = false;
+      if (app) app.destroy();
+    };
+  }, [items, bend, textColor, borderRadius, font, fontUrl, scrollSpeed, scrollEase]);
+  return (
+    <div
+      className="circular-gallery"
+      ref={containerRef}
+      tabIndex={0}
+      role="region"
+      aria-label="Circular image gallery. Use left and right arrow keys to navigate."
+    />
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Page content                                                      */
 /* ------------------------------------------------------------------ */
 
@@ -2039,6 +2679,20 @@ const industries = [
   "Workwear & uniforms",
   "Sportswear & performance garments",
   "Industrial & technical textiles",
+];
+
+// The 9 brands shown in the logo strip screenshot. Swap these `image` paths
+// for your actual logo files (e.g. in /public/logos/) and update the names.
+const brandItems = [
+  { image: "/logos/brand-1.png", text: "Brand One" },
+  { image: "/logos/brand-2.png", text: "Inedit" },
+  { image: "/logos/brand-3.png", text: "Gemini" },
+  { image: "/logos/brand-4.png", text: "Macpi" },
+  { image: "/logos/brand-5.png", text: "Maica" },
+  { image: "/logos/brand-6.png", text: "Brand Six" },
+  { image: "/logos/brand-7.png", text: "Brand Seven" },
+  { image: "/logos/brand-8.png", text: "Brand Eight" },
+  { image: "/logos/brand-9.png", text: "Brand Nine" },
 ];
 
 const fadeUp = {
@@ -2236,43 +2890,22 @@ export default function Home() {
         </p>
       </motion.section>
 
-      {/* Stats */}
-      <section className="bg-white px-6 py-20">
-        <motion.div
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.4 }}
-          variants={stagger}
-          className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-8"
-        >
-          <AnimatedCounter value={20} suffix="+" label="Years Experience" />
-          <AnimatedCounter value={500} suffix="+" label="Machines Installed" />
-          <AnimatedCounter value={50} suffix="+" label="Factories Served" />
-          <AnimatedCounter value={100} suffix="%" label="Support Commitment" />
-        </motion.div>
+      {/* Brand gallery — CircularGallery, inlined above in this same file.
+          Replace brandItems' image paths with your 9 actual brand logos. */}
+      <section className="bg-white">
+        <div style={{ height: "600px", position: "relative" }}>
+          <CircularGallery
+            items={brandItems}
+            bend={1}
+            textColor="#1A1A1A"
+            borderRadius={0.05}
+            scrollEase={0.05}
+            fontUrl=""
+            font="bold 30px Orbitron"
+            scrollSpeed={2}
+          />
+        </div>
       </section>
-
-      {/* Proven machinery */}
-      <motion.section
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.3 }}
-        variants={fadeUp}
-        className="bg-neutral-100 text-center px-6 py-24"
-      >
-        <h2 className="text-3xl sm:text-4xl font-bold text-black">
-          Proven, production-ready machinery
-        </h2>
-        <p className="mt-4 max-w-3xl mx-auto text-black/70 text-lg">
-          For over two decades, Rightback has partnered with leading global
-          manufacturers to deliver proven, production-ready machinery to the
-          garment, denim, and textile industries. We don&apos;t just sell
-          machines, we provide complete production solutions, backed by{" "}
-          <span className="font-semibold text-black">
-            technical expertise, trusted brands, and long-term support.
-          </span>
-        </p>
-      </motion.section>
 
       {/* What we do */}
       <section className="bg-neutral-100 px-6 py-28">

@@ -272,12 +272,13 @@ function PrismaticBurst({
     rendererRef.current = renderer;
 
     const gl = renderer.gl;
-    gl.canvas.style.position = "absolute";
-    gl.canvas.style.inset = "0";
-    gl.canvas.style.width = "100%";
-    gl.canvas.style.height = "100%";
-    gl.canvas.style.mixBlendMode = lightMode ? "normal" : mixBlendMode && mixBlendMode !== "none" ? mixBlendMode : "";
-    container.appendChild(gl.canvas);
+    const canvasEl = gl.canvas as HTMLCanvasElement;
+    canvasEl.style.position = "absolute";
+    canvasEl.style.inset = "0";
+    canvasEl.style.width = "100%";
+    canvasEl.style.height = "100%";
+    canvasEl.style.mixBlendMode = lightMode ? "normal" : mixBlendMode && mixBlendMode !== "none" ? mixBlendMode : "";
+    container.appendChild(canvasEl);
 
     const white = new Uint8Array([255, 255, 255, 255]);
     const gradientTex = new Texture(gl, {
@@ -399,16 +400,16 @@ function PrismaticBurst({
       io?.disconnect();
       document.removeEventListener("visibilitychange", onVis);
       try {
-        container.removeChild(gl.canvas);
+        container.removeChild(canvasEl);
       } catch {}
       try {
-        meshRef.current?.remove?.();
+        (meshRef.current as any)?.remove?.();
       } catch {}
       try {
-        triRef.current?.remove?.();
+        (triRef.current as any)?.remove?.();
       } catch {}
       try {
-        programRef.current?.remove?.();
+        (programRef.current as any)?.remove?.();
       } catch {}
       try {
         const glCtx = rendererRef.current?.gl;
@@ -426,7 +427,7 @@ function PrismaticBurst({
   }, []);
 
   useEffect(() => {
-    const canvas = rendererRef.current?.gl?.canvas;
+    const canvas = rendererRef.current?.gl?.canvas as HTMLCanvasElement | undefined;
     if (canvas) {
       canvas.style.mixBlendMode = lightMode
         ? "normal"

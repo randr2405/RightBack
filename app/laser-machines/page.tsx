@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
 import { supabase } from "@/lib/supabase";
 
@@ -385,6 +385,12 @@ export default function LaserMachinesPage() {
   const [list, setList] = useState<DbProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.2]);
+  const heroContentY = useTransform(scrollYProgress, [0, 1], [0, 120]);
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -413,15 +419,15 @@ export default function LaserMachinesPage() {
 
   return (
     <div className="bg-neutral-100 flex-1">
-      <section className="relative bg-[#0A0A0A] text-white overflow-hidden">
-        <div className="absolute inset-0">
-                   <CRTWarp
+      <section ref={heroRef} className="relative bg-[#0A0A0A] text-white overflow-hidden">
+        <motion.div style={{ y: bgY }} className="absolute inset-0">
+          <CRTWarp
             color="#DC2626"
             backgroundColor="#0A0A0A"
             speed={0.45}
             curvature={0.3}
             scanlineStrength={0.3}
-                                    scanlineFrequency={260}
+            scanlineFrequency={260}
             waveAmplitude={0.28}
             waveFrequency={5.5}
             bloom={0.9}
@@ -442,9 +448,12 @@ export default function LaserMachinesPage() {
             style={{ background: "radial-gradient(60% 55% at 50% 40%, rgba(0,0,0,0.35), transparent 70%)" }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
-        </div>
+        </motion.div>
 
-        <div className="relative px-6 pt-28 pb-24 text-center">
+        <motion.div
+          style={{ opacity: heroOpacity, y: heroContentY }}
+          className="relative px-6 pt-28 pb-24 text-center"
+        >
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -489,7 +498,7 @@ export default function LaserMachinesPage() {
               </motion.div>
             ))}
           </motion.div>
-        </div>
+        </motion.div>
       </section>
 
       <section className="px-6 py-24">
@@ -502,10 +511,10 @@ export default function LaserMachinesPage() {
             list.map((product, i) => (
               <motion.div
                 key={product.id}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 80, scale: 0.97 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.7, ease: "easeOut", delay: 0.05 }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               >
                 <ProductCard
                   index={i + 1}

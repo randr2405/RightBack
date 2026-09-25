@@ -421,14 +421,14 @@ export default function LaserMachinesPage() {
             speed={0.45}
             curvature={0.3}
             scanlineStrength={0.3}
-                        scanlineFrequency={220}
+                                    scanlineFrequency={260}
             waveAmplitude={0.28}
-            waveFrequency={3.2}
-            bloom={1.4}
-            bloomRadius={0.8}
-            noise={0.08}
-            vignette={0.4}
-            brightness={1.15}
+            waveFrequency={5.5}
+            bloom={0.9}
+            bloomRadius={0.6}
+            noise={0.06}
+            vignette={0.55}
+            brightness={0.85}
             pixelation={1}
             rgbShift={0.012}
             mouseReact

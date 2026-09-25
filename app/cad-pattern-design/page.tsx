@@ -571,9 +571,9 @@ export default function CADPatternDesignPage() {
             mixBlendMode="lighten"
             colors={["#DC2626", "#7C1D1D", "#FCA5A5"]}
           />
-          <div
+                  <div
             className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(60% 55% at 50% 40%, rgba(0,0,0,0.35), transparent 70%)" }}
+            style={{ background: "radial-gradient(45% 50% at 50% 42%, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 55%, transparent 80%)" }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
         </motion.div>

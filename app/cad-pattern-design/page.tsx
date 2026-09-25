@@ -264,8 +264,9 @@ function PrismaticBurst({
   }, [hoverDampness]);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const containerEl = containerRef.current;
+    if (!containerEl) return;
+    const container: HTMLDivElement = containerEl;
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const renderer = new Renderer({ dpr, alpha: false, antialias: false });

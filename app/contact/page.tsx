@@ -151,7 +151,7 @@ void main() {
     vec3 airColor = mix(backdrop, uGlowColor, 0.16);
 
     outputColor = mix(backdrop, airColor, atmosphere);
-      outputColor = mix(outputColor, fiberInk, clamp(fibers * 0.4, 0.0, 1.0));
+            outputColor = mix(outputColor, fiberInk, clamp(fibers * 0.45, 0.0, 1.0));
   } else {
     outputColor = backdrop + color;
   }
@@ -543,11 +543,11 @@ export default function ContactPage() {
                <GhostFibers
           lineColor="#DC2626"
           glowColor="#F87171"
-          speed={0.2}
-          scale={2}
+                    speed={0.2}
+          scale={3}
           rotation={0}
           rotationSpeed={0.25}
-                   layers={4}
+                   layers={3}
           waveAmplitude={0.015}
           waveFrequency={3}
           waveSpeed={0.15}
@@ -555,8 +555,8 @@ export default function ContactPage() {
           twist={0.1}
           twistFrequency={5}
           twistSpeed={1.2}
-          lineFrequency={5}
-          lineSpacing={2}
+          lineFrequency={2}
+          lineSpacing={1}
           lineSharpness={10}
           glowFalloff={10}
           glowIntensity={1.4}
@@ -571,12 +571,8 @@ export default function ContactPage() {
         />
       </div>
 
-                {/* Header */}
+            {/* Header */}
       <section className="relative z-10 text-center px-6 pt-28 pb-16">
-        <div
-          className="absolute inset-0 -z-10 bg-neutral-100/70 backdrop-blur-sm"
-          aria-hidden="true"
-        />
         <motion.span
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

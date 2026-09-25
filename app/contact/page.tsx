@@ -151,7 +151,7 @@ void main() {
     vec3 airColor = mix(backdrop, uGlowColor, 0.16);
 
     outputColor = mix(backdrop, airColor, atmosphere);
-      outputColor = mix(outputColor, fiberInk, clamp(fibers * 0.55, 0.0, 1.0));
+      outputColor = mix(outputColor, fiberInk, clamp(fibers * 0.4, 0.0, 1.0));
   } else {
     outputColor = backdrop + color;
   }
@@ -571,8 +571,12 @@ export default function ContactPage() {
         />
       </div>
 
-            {/* Header */}
+                {/* Header */}
       <section className="relative z-10 text-center px-6 pt-28 pb-16">
+        <div
+          className="absolute inset-0 -z-10 bg-neutral-100/70 backdrop-blur-sm"
+          aria-hidden="true"
+        />
         <motion.span
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Renderer, Program, Mesh, Triangle, Texture } from "ogl";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
 import { supabase } from "@/lib/supabase";
 
@@ -335,7 +335,7 @@ function PrismaticBurst({
       ro = new ResizeObserver(resize);
       ro.observe(container);
     } else {
-            (window as Window).addEventListener("resize", resize);
+      (window as Window).addEventListener("resize", resize);
     }
     resize();
 
@@ -345,7 +345,7 @@ function PrismaticBurst({
       const y = (e.clientY - rect.top) / Math.max(rect.height, 1);
       mouseTargetRef.current = [Math.min(Math.max(x, 0), 1), Math.min(Math.max(y, 0), 1)];
     };
-        (container as HTMLDivElement).addEventListener("pointermove", onPointer, { passive: true });
+    (container as HTMLDivElement).addEventListener("pointermove", onPointer, { passive: true });
 
     let io: IntersectionObserver | null = null;
     if ("IntersectionObserver" in window) {
@@ -525,9 +525,19 @@ export default function CADPatternDesignPage() {
 
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.2]);
-  const heroContentY = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 90, damping: 24, mass: 0.4 });
+
+  const heroOpacity = useTransform(smoothProgress, [0, 1], [1, 0.1]);
+  const heroContentY = useTransform(smoothProgress, [0, 1], [0, 160]);
+  const heroScale = useTransform(smoothProgress, [0, 1], [1, 1.12]);
+  const heroBlur = useTransform(smoothProgress, [0, 1], [0, 8]);
+  const heroFilter = useTransform(heroBlur, (v) => `blur(${v}px)`);
+  const bgY = useTransform(smoothProgress, [0, 1], ["0%", "30%"]);
+  const bgScale = useTransform(smoothProgress, [0, 1], [1, 1.25]);
+  const eyebrowX = useTransform(smoothProgress, [0, 1], [0, -60]);
+  const statsY = useTransform(smoothProgress, [0, 1], [0, 220]);
+  const statsOpacity = useTransform(smoothProgress, [0, 0.6], [1, 0]);
+  const scrollHintOpacity = useTransform(smoothProgress, [0, 0.15], [1, 0]);
 
   useEffect(() => {
     let cancelled = false;
@@ -557,76 +567,92 @@ export default function CADPatternDesignPage() {
 
   return (
     <div className="bg-neutral-100 flex-1">
-      <section ref={heroRef} className="relative bg-[#0A0A0A] text-white overflow-hidden">
-        <motion.div style={{ y: bgY }} className="absolute inset-0">
-          <PrismaticBurst
-            animationType="rotate3d"
-            intensity={2}
-            speed={0.45}
-            distort={0.6}
-            paused={false}
-            offset={{ x: 0, y: 0 }}
-            hoverDampness={0.25}
-            rayCount={0}
-            mixBlendMode="lighten"
-            colors={["#DC2626", "#7C1D1D", "#FCA5A5"]}
-          />
-                  <div
-            className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(45% 50% at 50% 42%, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 55%, transparent 80%)" }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
-        </motion.div>
-
-        <motion.div
-          style={{ opacity: heroOpacity, y: heroContentY }}
-          className="relative px-6 pt-28 pb-24 text-center"
-        >
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-red font-semibold tracking-widest uppercase text-sm mb-4"
-          >
-            Digital Design &amp; Cutting
-          </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, y: 40, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-            className="text-5xl sm:text-7xl font-bold"
-            style={{ textShadow: "0 2px 24px rgba(0,0,0,0.65)" }}
-          >
-            CAD Pattern Design
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="mt-6 max-w-2xl mx-auto text-white/70 text-lg sm:text-xl"
-          >
-            A complete digital suite for pattern making, digitization, marker planning, and precision cutting — from design to production.
-          </motion.p>
+      <section ref={heroRef} className="relative bg-[#0A0A0A] text-white overflow-hidden h-[130vh]">
+        <div className="sticky top-0 h-screen overflow-hidden">
+          <motion.div style={{ y: bgY, scale: bgScale }} className="absolute inset-0">
+            <PrismaticBurst
+              animationType="rotate3d"
+              intensity={2}
+              speed={0.45}
+              distort={0.6}
+              paused={false}
+              offset={{ x: 0, y: 0 }}
+              hoverDampness={0.25}
+              rayCount={0}
+              mixBlendMode="lighten"
+              colors={["#DC2626", "#7C1D1D", "#FCA5A5"]}
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: "radial-gradient(45% 50% at 50% 42%, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 55%, transparent 80%)" }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
+          </motion.div>
 
           <motion.div
-            initial="hidden"
-            animate="show"
-            variants={stagger}
-            transition={{ delayChildren: 0.5 }}
-            className="mt-14 flex flex-wrap justify-center gap-10 sm:gap-16"
+            style={{ opacity: heroOpacity, y: heroContentY, scale: heroScale, filter: heroFilter }}
+            className="relative h-full flex flex-col items-center justify-center px-6 text-center"
           >
-            {[
-              { value: String(list.length), label: "Software Tools" },
-              { value: "60%", label: "Faster Development" },
-              { value: "30%", label: "Material Savings" },
-            ].map((stat) => (
-              <motion.div key={stat.label} variants={fadeUp} className="text-center">
-                <div className="text-4xl sm:text-5xl font-bold text-white">{stat.value}</div>
-                <div className="mt-1 text-sm uppercase tracking-wider text-white/50">{stat.label}</div>
-              </motion.div>
-            ))}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              style={{ x: eyebrowX }}
+              className="text-red font-semibold tracking-widest uppercase text-sm mb-4"
+            >
+              Digital Design &amp; Cutting
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 40, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+              className="text-5xl sm:text-7xl font-bold"
+              style={{ textShadow: "0 2px 24px rgba(0,0,0,0.65)" }}
+            >
+              CAD Pattern Design
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="mt-6 max-w-2xl mx-auto text-white/70 text-lg sm:text-xl"
+            >
+              A complete digital suite for pattern making, digitization, marker planning, and precision cutting — from design to production.
+            </motion.p>
+
+            <motion.div
+              initial="hidden"
+              animate="show"
+              variants={stagger}
+              transition={{ delayChildren: 0.5 }}
+              style={{ y: statsY, opacity: statsOpacity }}
+              className="mt-14 flex flex-wrap justify-center gap-10 sm:gap-16"
+            >
+              {[
+                { value: String(list.length), label: "Software Tools" },
+                { value: "60%", label: "Faster Development" },
+                { value: "30%", label: "Material Savings" },
+              ].map((stat) => (
+                <motion.div key={stat.label} variants={fadeUp} className="text-center">
+                  <div className="text-4xl sm:text-5xl font-bold text-white">{stat.value}</div>
+                  <div className="mt-1 text-sm uppercase tracking-wider text-white/50">{stat.label}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <motion.div
+              style={{ opacity: scrollHintOpacity }}
+              className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+            >
+              <motion.div
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                className="w-px h-10 bg-gradient-to-b from-white/60 to-transparent"
+              />
+              <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">Scroll</span>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </section>
 
       <section className="px-6 py-24">
@@ -637,10 +663,11 @@ export default function CADPatternDesignPage() {
             list.map((product, i) => (
               <motion.div
                 key={product.id}
-                initial={{ opacity: 0, y: 80, scale: 0.97 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                initial={{ opacity: 0, y: 90, scale: 0.95, rotateX: 4 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }}
+                style={{ transformPerspective: 1200 }}
               >
                 <ProductCard
                   index={i + 1}

@@ -415,17 +415,17 @@ export default function LaserMachinesPage() {
     <div className="bg-neutral-100 flex-1">
       <section className="relative bg-[#0A0A0A] text-white overflow-hidden">
         <div className="absolute inset-0">
-          <CRTWarp
+                   <CRTWarp
             color="#DC2626"
             backgroundColor="#0A0A0A"
             speed={0.45}
             curvature={0.3}
             scanlineStrength={0.3}
-            scanlineFrequency={180}
+            scanlineFrequency={280}
             waveAmplitude={0.28}
-            waveFrequency={2.2}
-            bloom={1.7}
-            bloomRadius={1.1}
+            waveFrequency={4.5}
+            bloom={1.4}
+            bloomRadius={0.8}
             noise={0.08}
             vignette={0.4}
             brightness={1.15}

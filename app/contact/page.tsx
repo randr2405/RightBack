@@ -142,16 +142,16 @@ void main() {
   color = 1.0 - exp(-color * uBrightness);
   color.b *= uBlueBoost;
 
-  vec3 outputColor;
+   vec3 outputColor;
   if (uLightMode > 0.5) {
     float edgeFade = mix(1.0 - uVignette, 1.0, vignette);
-    float fibers = pow(smoothstep(0.12, 1.05, fiberField) * edgeFade, 1.5);
+    float fibers = pow(smoothstep(0.04, 0.6, fiberField) * edgeFade, 1.2);
     float atmosphere = (center * 0.025 + cloud * 0.015) * edgeFade;
-    vec3 fiberInk = mix(backdrop, uLineColor, 0.52);
+    vec3 fiberInk = mix(backdrop, uLineColor, 0.7);
     vec3 airColor = mix(backdrop, uGlowColor, 0.16);
 
     outputColor = mix(backdrop, airColor, atmosphere);
-    outputColor = mix(outputColor, fiberInk, fibers * 0.3);
+    outputColor = mix(outputColor, fiberInk, fibers * 0.9);
   } else {
     outputColor = backdrop + color;
   }
@@ -540,14 +540,14 @@ export default function ContactPage() {
     <div className="bg-neutral-100 flex-1 relative overflow-hidden">
       {/* GhostFibers background: light grey backdrop, red fibers */}
       <div className="absolute inset-0 -z-10">
-        <GhostFibers
+               <GhostFibers
           lineColor="#DC2626"
           glowColor="#F87171"
           speed={0.2}
           scale={2}
           rotation={0}
           rotationSpeed={0.25}
-          layers={4}
+          layers={5}
           waveAmplitude={0.015}
           waveFrequency={3}
           waveSpeed={0.15}
@@ -555,14 +555,14 @@ export default function ContactPage() {
           twist={0.1}
           twistFrequency={5}
           twistSpeed={1.2}
-          lineFrequency={5}
+          lineFrequency={8}
           lineSpacing={2}
-          lineSharpness={16}
+          lineSharpness={6}
           glowFalloff={10}
-          glowIntensity={1.6}
-          brightness={2}
-          blueBoost={1.25}
-          vignette={0.8}
+          glowIntensity={2.2}
+          brightness={2.4}
+          blueBoost={1}
+          vignette={0.6}
           grain={0.05}
           dpr={1}
           lightMode={true}

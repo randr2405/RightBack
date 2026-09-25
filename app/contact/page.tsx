@@ -142,16 +142,16 @@ void main() {
   color = 1.0 - exp(-color * uBrightness);
   color.b *= uBlueBoost;
 
-   vec3 outputColor;
+    vec3 outputColor;
   if (uLightMode > 0.5) {
     float edgeFade = mix(1.0 - uVignette, 1.0, vignette);
-    float fibers = pow(smoothstep(0.04, 0.6, fiberField) * edgeFade, 1.2);
+    float fibers = pow(clamp(fiberField, 0.0, 1.0) * edgeFade, 0.6);
     float atmosphere = (center * 0.025 + cloud * 0.015) * edgeFade;
-    vec3 fiberInk = mix(backdrop, uLineColor, 0.7);
+    vec3 fiberInk = uLineColor;
     vec3 airColor = mix(backdrop, uGlowColor, 0.16);
 
     outputColor = mix(backdrop, airColor, atmosphere);
-    outputColor = mix(outputColor, fiberInk, fibers * 0.9);
+    outputColor = mix(outputColor, fiberInk, clamp(fibers * 1.4, 0.0, 1.0));
   } else {
     outputColor = backdrop + color;
   }
@@ -536,10 +536,10 @@ export default function ContactPage() {
     }
   }
 
-  return (
-    <div className="bg-neutral-100 flex-1 relative overflow-hidden">
+    return (
+    <div className="flex-1 relative overflow-hidden">
       {/* GhostFibers background: light grey backdrop, red fibers */}
-      <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 z-0 pointer-events-none">
                <GhostFibers
           lineColor="#DC2626"
           glowColor="#F87171"
@@ -571,8 +571,8 @@ export default function ContactPage() {
         />
       </div>
 
-      {/* Header */}
-      <section className="relative text-center px-6 pt-28 pb-16">
+            {/* Header */}
+      <section className="relative z-10 text-center px-6 pt-28 pb-16">
         <motion.span
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -600,8 +600,8 @@ export default function ContactPage() {
         </motion.p>
       </section>
 
-      {/* Form + Details */}
-      <section className="relative px-6 pb-28">
+            {/* Form + Details */}
+      <section className="relative z-10 px-6 pb-28">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-10">
           <motion.form
             onSubmit={handleSubmit}

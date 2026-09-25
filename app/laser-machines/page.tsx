@@ -1,496 +1,360 @@
 ﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Renderer, Program, Mesh, Triangle, Texture } from "ogl";
+import * as THREE from "three";
 import { motion, useScroll, useTransform } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
 import { supabase } from "@/lib/supabase";
 
-const prismVertexShader = `#version 300 es
-in vec2 position;
-in vec2 uv;
-out vec2 vUv;
+const crtVertexShader = `
+varying vec2 vUv;
+
 void main() {
-    vUv = uv;
-    gl_Position = vec4(position, 0.0, 1.0);
+  vUv = uv;
+  gl_Position = vec4(position, 1.0);
 }
 `;
 
-const prismFragmentShader = `#version 300 es
+const crtFragmentShader = `
 precision highp float;
-precision highp int;
 
-out vec4 fragColor;
-
-uniform vec2  uResolution;
+varying vec2 vUv;
+uniform vec2 uResolution;
 uniform float uTime;
+uniform vec3 uColor;
+uniform vec3 uBackgroundColor;
+uniform float uCurvature;
+uniform float uScanlineStrength;
+uniform float uScanlineFrequency;
+uniform float uWaveAmplitude;
+uniform float uWaveFrequency;
+uniform float uBloom;
+uniform float uBloomRadius;
+uniform float uNoise;
+uniform float uVignette;
+uniform float uBrightness;
+uniform float uPixelation;
+uniform float uRgbShift;
+uniform vec2 uPointer;
+uniform float uMouseStrength;
+uniform float uMouseReact;
 
-uniform float uIntensity;
-uniform float uSpeed;
-uniform int   uAnimType;
-uniform vec2  uMouse;
-uniform int   uColorCount;
-uniform float uDistort;
-uniform vec2  uOffset;
-uniform sampler2D uGradient;
-uniform float uNoiseAmount;
-uniform int   uRayCount;
-uniform float uLightMode;
-
-float hash21(vec2 p){
-    p = floor(p);
-    float f = 52.9829189 * fract(dot(p, vec2(0.065, 0.005)));
-    return fract(f);
+float hash21(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
 }
 
-mat2 rot30(){ return mat2(0.8, -0.5, 0.5, 0.8); }
-
-float layeredNoise(vec2 fragPx){
-    vec2 p = mod(fragPx + vec2(uTime * 30.0, -uTime * 21.0), 1024.0);
-    vec2 q = rot30() * p;
-    float n = 0.0;
-    n += 0.40 * hash21(q);
-    n += 0.25 * hash21(q * 2.0 + 17.0);
-    n += 0.20 * hash21(q * 4.0 + 47.0);
-    n += 0.10 * hash21(q * 8.0 + 113.0);
-    n += 0.05 * hash21(q * 16.0 + 191.0);
-    return n;
+vec2 crtCurve(vec2 uv, float radius) {
+  vec2 p = (uv - 0.5) * 2.0;
+  float safeRadius = max(radius, 1.415);
+  float cornerScale = safeRadius / sqrt(max(safeRadius * safeRadius - 2.0, 0.001));
+  p = safeRadius * p / sqrt(max(safeRadius * safeRadius - dot(p, p), 0.001));
+  p /= cornerScale;
+  return p * 0.5 + 0.5;
 }
 
-vec3 rayDir(vec2 frag, vec2 res, vec2 offset, float dist){
-    float focal = res.y * max(dist, 1e-3);
-    return normalize(vec3(2.0 * (frag - offset) - res, focal));
+float referencePlasma(vec2 uv, float t) {
+  float frequencyScale = max(uWaveFrequency / 2.2, 0.001);
+  uv = (uv - 0.5) * frequencyScale + 0.5;
+
+  float scanline = 0.5 - 0.5 * cos(uv.y * 3.14159265 * uScanlineFrequency);
+  scanline = mix(1.0, scanline, uScanlineStrength);
+
+  uv *= vec2(80.0, 24.0);
+  uv = ceil(uv);
+  uv /= vec2(80.0, 24.0);
+
+  float amplitude = uWaveAmplitude / 0.28;
+  float field = 0.0;
+  field += 0.7 * sin(0.5 * uv.x + t / 5.0);
+  field += 3.0 * sin(1.6 * uv.y + t / 5.0);
+  field += sin(10.0 * (uv.y * sin(t / 2.0) + uv.x * cos(t / 5.0)) + t / 2.0);
+
+  float cx = uv.x + 0.5 * sin(t / 2.0);
+  float cy = uv.y + 0.5 * cos(t / 4.0);
+  field += 0.4 * sin(sqrt(100.0 * cx * cx + 100.0 * cy * cy + 1.0) + t);
+  field += 0.9 * sin(sqrt(75.0 * cx * cx + 25.0 * cy * cy + 1.0) + t);
+  field -= 1.4 * sin(sqrt(256.0 * cx * cx + 25.0 * cy * cy + 1.0) + t);
+  field += 0.3 * sin(0.5 * uv.y + uv.x + sin(t));
+
+  return scanline * floor(3.0 * (0.5 + 0.499 * sin(field * amplitude))) / 3.0;
 }
 
-float edgeFade(vec2 frag, vec2 res, vec2 offset){
-    vec2 toC = frag - 0.5 * res - offset;
-    float r = length(toC) / (0.5 * min(res.x, res.y));
-    float x = clamp(r, 0.0, 1.0);
-    float q = x * x * x * (x * (x * 6.0 - 15.0) + 10.0);
-    float s = q * 0.5;
-    s = pow(s, 1.5);
-    float tail = 1.0 - pow(1.0 - s, 2.0);
-    s = mix(s, tail, 0.2);
-    float dn = (layeredNoise(frag * 0.15) - 0.5) * 0.0015 * s;
-    return clamp(s + dn, 0.0, 1.0);
-}
-
-mat3 rotX(float a){ float c = cos(a), s = sin(a); return mat3(1.0,0.0,0.0, 0.0,c,-s, 0.0,s,c); }
-mat3 rotY(float a){ float c = cos(a), s = sin(a); return mat3(c,0.0,s, 0.0,1.0,0.0, -s,0.0,c); }
-mat3 rotZ(float a){ float c = cos(a), s = sin(a); return mat3(c,-s,0.0, s,c,0.0, 0.0,0.0,1.0); }
-
-vec3 sampleGradient(float t){
-    t = clamp(t, 0.0, 1.0);
-    return texture(uGradient, vec2(t, 0.5)).rgb;
-}
-
-vec2 rot2(vec2 v, float a){
-    float s = sin(a), c = cos(a);
-    return mat2(c, -s, s, c) * v;
-}
-
-float bendAngle(vec3 q, float t){
-    float a = 0.8 * sin(q.x * 0.55 + t * 0.6)
-            + 0.7 * sin(q.y * 0.50 - t * 0.5)
-            + 0.6 * sin(q.z * 0.60 + t * 0.7);
-    return a;
-}
-
-void main(){
-    vec2 frag = gl_FragCoord.xy;
-    float t = uTime * uSpeed;
-    float jitterAmp = 0.1 * clamp(uNoiseAmount, 0.0, 1.0);
-    vec3 dir = rayDir(frag, uResolution, uOffset, 1.0);
-    float marchT = 0.0;
-    vec3 col = vec3(0.0);
-    float n = layeredNoise(frag);
-    vec4 c = cos(t * 0.2 + vec4(0.0, 33.0, 11.0, 0.0));
-    mat2 M2 = mat2(c.x, c.y, c.z, c.w);
-    float amp = clamp(uDistort, 0.0, 50.0) * 0.15;
-
-    mat3 rot3dMat = mat3(1.0);
-    if(uAnimType == 1){
-      vec3 ang = vec3(t * 0.31, t * 0.21, t * 0.17);
-      rot3dMat = rotZ(ang.z) * rotY(ang.y) * rotX(ang.x);
-    }
-    mat3 hoverMat = mat3(1.0);
-    if(uAnimType == 2){
-      vec2 m = uMouse * 2.0 - 1.0;
-      vec3 ang = vec3(m.y * 0.6, m.x * 0.6, 0.0);
-      hoverMat = rotY(ang.y) * rotX(ang.x);
-    }
-
-    for (int i = 0; i < 44; ++i) {
-        vec3 P = marchT * dir;
-        P.z -= 2.0;
-        float rad = length(P);
-        vec3 Pl = P * (10.0 / max(rad, 1e-6));
-
-        if(uAnimType == 0){
-            Pl.xz *= M2;
-        } else if(uAnimType == 1){
-      Pl = rot3dMat * Pl;
-        } else {
-      Pl = hoverMat * Pl;
-        }
-
-        float stepLen = min(rad - 0.3, n * jitterAmp) + 0.1;
-
-        float grow = smoothstep(0.35, 3.0, marchT);
-        float a1 = amp * grow * bendAngle(Pl * 0.6, t);
-        float a2 = 0.5 * amp * grow * bendAngle(Pl.zyx * 0.5 + 3.1, t * 0.9);
-        vec3 Pb = Pl;
-        Pb.xz = rot2(Pb.xz, a1);
-        Pb.xy = rot2(Pb.xy, a2);
-
-        float rayPattern = smoothstep(
-            0.5, 0.7,
-            sin(Pb.x + cos(Pb.y) * cos(Pb.z)) *
-            sin(Pb.z + sin(Pb.y) * cos(Pb.x + t))
-        );
-
-        if (uRayCount > 0) {
-            float ang = atan(Pb.y, Pb.x);
-            float comb = 0.5 + 0.5 * cos(float(uRayCount) * ang);
-            comb = pow(comb, 3.0);
-            rayPattern *= smoothstep(0.15, 0.95, comb);
-        }
-
-        vec3 spectralDefault = 1.0 + vec3(
-            cos(marchT * 3.0 + 0.0),
-            cos(marchT * 3.0 + 1.0),
-            cos(marchT * 3.0 + 2.0)
-        );
-
-        float saw = fract(marchT * 0.25);
-        float tRay = saw * saw * (3.0 - 2.0 * saw);
-        vec3 userGradient = 2.0 * sampleGradient(tRay);
-        vec3 spectral = (uColorCount > 0) ? userGradient : spectralDefault;
-        vec3 base = (0.05 / (0.4 + stepLen))
-                  * smoothstep(5.0, 0.0, rad)
-                  * spectral;
-
-        col += base * rayPattern;
-        marchT += stepLen;
-    }
-
-    col *= edgeFade(frag, uResolution, uOffset);
-    col *= uIntensity;
-
-    col = clamp(col, 0.0, 1.0);
-    if (uLightMode > 0.5) {
-        float energy = max(max(col.r, col.g), col.b);
-        vec3 hue = col / max(energy, 0.0001);
-        float neutral = min(hue.r, min(hue.g, hue.b));
-        hue = max(hue - vec3(neutral * 0.68), vec3(0.0));
-        hue /= max(max(hue.r, max(hue.g, hue.b)), 0.0001);
-        vec3 pigment = mix(hue, hue * hue, 0.24) * 0.64;
-        float coverage = smoothstep(0.001, 0.32, energy);
-        coverage = pow(coverage, 0.72) * 0.92;
-        col = mix(vec3(1.0), pigment, coverage);
-    }
-    fragColor = vec4(col, 1.0);
-}`;
-
-const hexToRgb01 = (hex: string): [number, number, number] => {
-  let h = hex.trim();
-  if (h.startsWith("#")) h = h.slice(1);
-  if (h.length === 3) {
-    const r = h[0],
-      g = h[1],
-      b = h[2];
-    h = r + r + g + g + b + b;
+void main() {
+  vec2 uv = vUv;
+  if (uPixelation > 1.001) {
+    vec2 cells = max(uResolution / uPixelation, vec2(1.0));
+    uv = (floor(uv * cells) + 0.5) / cells;
   }
-  const intVal = parseInt(h.slice(0, 6), 16);
-  if (isNaN(intVal) || (h.length !== 6 && h.length !== 8)) return [1, 1, 1];
-  const r = ((intVal >> 16) & 255) / 255;
-  const g = ((intVal >> 8) & 255) / 255;
-  const b = (intVal & 255) / 255;
-  return [r, g, b];
-};
 
-const toPx = (v: unknown): number => {
-  if (v == null) return 0;
-  if (typeof v === "number") return v;
-  const s = String(v).trim();
-  const num = parseFloat(s.replace("px", ""));
-  return isNaN(num) ? 0 : num;
-};
+  float curveRadius = 1.1 + 0.42 / max(uCurvature, 0.001);
+  if (uMouseReact > 0.5) {
+    curveRadius *= exp(-uPointer.y * uMouseStrength * 0.4);
+  }
+  vec2 curvedUv = crtCurve(uv, curveRadius);
+  if (uMouseReact > 0.5) {
+    curvedUv.x -= uPointer.x * uMouseStrength * 0.035;
+  }
 
-type PrismaticBurstProps = {
-  intensity?: number;
+  float signal = referencePlasma(curvedUv, uTime);
+  float radius = 0.01 * uBloomRadius;
+  float glow = signal * 0.2;
+  glow += referencePlasma(curvedUv + vec2(radius, 0.0), uTime) * 0.12;
+  glow += referencePlasma(curvedUv - vec2(radius, 0.0), uTime) * 0.12;
+  glow += referencePlasma(curvedUv + vec2(0.0, radius), uTime) * 0.12;
+  glow += referencePlasma(curvedUv - vec2(0.0, radius), uTime) * 0.12;
+  glow += referencePlasma(curvedUv + vec2(radius), uTime) * 0.08;
+  glow += referencePlasma(curvedUv - vec2(radius), uTime) * 0.08;
+  glow += referencePlasma(curvedUv + vec2(radius, -radius), uTime) * 0.08;
+  glow += referencePlasma(curvedUv + vec2(-radius, radius), uTime) * 0.08;
+
+  float redSignal = referencePlasma(curvedUv + vec2(uRgbShift, 0.0), uTime);
+  float blueSignal = referencePlasma(curvedUv - vec2(uRgbShift, 0.0), uTime);
+  vec3 channelSignal = vec3(redSignal, signal, blueSignal);
+  vec3 waveColor = uColor * (0.3 + signal * 0.7 + glow * uBloom * 0.65);
+  waveColor += (channelSignal - signal) * 0.42;
+
+  float edge = clamp(1.0 - dot(vUv - 0.5, vUv - 0.5) * 2.0, 0.0, 1.0);
+  float edgeFade = mix(1.0, smoothstep(0.0, 1.0, edge), uVignette);
+  float waveMask = clamp(signal * 0.82 + glow * 0.52, 0.0, 1.0) * edgeFade;
+
+  float grain = hash21(gl_FragCoord.xy + vec2(fract(uTime) * 173.0));
+  waveColor = max(waveColor * uBrightness, vec3(0.0));
+  vec3 color = mix(uBackgroundColor, waveColor, waveMask);
+  color += (grain - 0.5) * uNoise;
+  gl_FragColor = vec4(max(color, vec3(0.0)), 1.0);
+}
+`;
+
+type CRTWarpProps = {
+  color?: string;
+  backgroundColor?: string;
   speed?: number;
-  animationType?: "rotate" | "rotate3d" | "hover";
-  colors?: string[];
-  distort?: number;
+  curvature?: number;
+  scanlineStrength?: number;
+  scanlineFrequency?: number;
+  waveAmplitude?: number;
+  waveFrequency?: number;
+  bloom?: number;
+  bloomRadius?: number;
+  noise?: number;
+  vignette?: number;
+  brightness?: number;
+  pixelation?: number;
+  rgbShift?: number;
+  mouseReact?: boolean;
+  mouseStrength?: number;
+  dpr?: number;
+  fps?: number;
   paused?: boolean;
-  offset?: { x?: number | string; y?: number | string };
-  hoverDampness?: number;
-  rayCount?: number;
-  mixBlendMode?: string;
-  lightMode?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
 };
 
-function PrismaticBurst({
-  intensity = 2,
+function CRTWarp({
+  color = "#DC2626",
+  backgroundColor = "#0A0A0A",
   speed = 0.5,
-  animationType = "rotate3d",
-  colors,
-  distort = 0,
+  curvature = 0.25,
+  scanlineStrength = 0.25,
+  scanlineFrequency = 200,
+  waveAmplitude = 0.3,
+  waveFrequency = 2.5,
+  bloom = 1.5,
+  bloomRadius = 1,
+  noise = 0.1,
+  vignette = 0,
+  brightness = 1.25,
+  pixelation = 1,
+  rgbShift = 0.015,
+  mouseReact = true,
+  mouseStrength = 0.5,
+  dpr = 1,
+  fps = 30,
   paused = false,
-  offset = { x: 0, y: 0 },
-  hoverDampness = 0,
-  rayCount,
-  mixBlendMode = "lighten",
-  lightMode = false,
-}: PrismaticBurstProps) {
+  className,
+  style,
+}: CRTWarpProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const programRef = useRef<Program | null>(null);
-  const rendererRef = useRef<Renderer | null>(null);
-  const mouseTargetRef = useRef<[number, number]>([0.5, 0.5]);
-  const mouseSmoothRef = useRef<[number, number]>([0.5, 0.5]);
+  const materialRef = useRef<THREE.ShaderMaterial | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const frameRef = useRef<number>(0);
   const pausedRef = useRef(paused);
-  const gradTexRef = useRef<Texture | null>(null);
-  const hoverDampRef = useRef(hoverDampness);
-  const isVisibleRef = useRef(true);
-  const meshRef = useRef<Mesh | null>(null);
-  const triRef = useRef<Triangle | null>(null);
+  const pointerTargetRef = useRef(new THREE.Vector2(0, 0));
+  const pointerCurrentRef = useRef(new THREE.Vector2(0, 0));
+  const visibleRef = useRef(true);
+  const fpsRef = useRef(fps);
+  const lastFrameRef = useRef(0);
 
   useEffect(() => {
     pausedRef.current = paused;
   }, [paused]);
+
   useEffect(() => {
-    hoverDampRef.current = hoverDampness;
-  }, [hoverDampness]);
+    fpsRef.current = Math.max(1, fps);
+  }, [fps]);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) return undefined;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const renderer = new Renderer({ dpr, alpha: false, antialias: false });
-    rendererRef.current = renderer;
-
-    const gl = renderer.gl;
-    gl.canvas.style.position = "absolute";
-    gl.canvas.style.inset = "0";
-    gl.canvas.style.width = "100%";
-    gl.canvas.style.height = "100%";
-    gl.canvas.style.mixBlendMode = lightMode ? "normal" : mixBlendMode && mixBlendMode !== "none" ? mixBlendMode : "";
-    container.appendChild(gl.canvas);
-
-    const white = new Uint8Array([255, 255, 255, 255]);
-    const gradientTex = new Texture(gl, {
-      image: white,
-      width: 1,
-      height: 1,
-      generateMipmaps: false,
-      flipY: false,
-    });
-
-    gradientTex.minFilter = gl.LINEAR;
-    gradientTex.magFilter = gl.LINEAR;
-    gradientTex.wrapS = gl.CLAMP_TO_EDGE;
-    gradientTex.wrapT = gl.CLAMP_TO_EDGE;
-    gradTexRef.current = gradientTex;
-
-    const program = new Program(gl, {
-      vertex: prismVertexShader,
-      fragment: prismFragmentShader,
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const material = new THREE.ShaderMaterial({
+      vertexShader: crtVertexShader,
+      fragmentShader: crtFragmentShader,
       uniforms: {
-        uResolution: { value: [1, 1] },
+        uResolution: { value: new THREE.Vector2(1, 1) },
         uTime: { value: 0 },
-        uIntensity: { value: 1 },
-        uSpeed: { value: 1 },
-        uAnimType: { value: 0 },
-        uMouse: { value: [0.5, 0.5] },
-        uColorCount: { value: 0 },
-        uDistort: { value: 0 },
-        uOffset: { value: [0, 0] },
-        uGradient: { value: gradientTex },
-        uNoiseAmount: { value: 0.8 },
-        uRayCount: { value: 0 },
-        uLightMode: { value: lightMode ? 1 : 0 },
+        uSpeed: { value: 0.5 },
+        uColor: { value: new THREE.Color("#DC2626") },
+        uBackgroundColor: { value: new THREE.Color("#0A0A0A") },
+        uCurvature: { value: 0.25 },
+        uScanlineStrength: { value: 0.25 },
+        uScanlineFrequency: { value: 200 },
+        uWaveAmplitude: { value: 0.3 },
+        uWaveFrequency: { value: 2.5 },
+        uBloom: { value: 1.5 },
+        uBloomRadius: { value: 1 },
+        uNoise: { value: 0.1 },
+        uVignette: { value: 0 },
+        uBrightness: { value: 1.25 },
+        uPixelation: { value: 1 },
+        uRgbShift: { value: 0.015 },
+        uPointer: { value: new THREE.Vector2(0, 0) },
+        uMouseStrength: { value: 0.5 },
+        uMouseReact: { value: 1 },
       },
     });
+    materialRef.current = material;
 
-    programRef.current = program;
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
 
-    const triangle = new Triangle(gl);
-    const mesh = new Mesh(gl, { geometry: triangle, program });
-    triRef.current = triangle;
-    meshRef.current = mesh;
+    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "low-power" });
+    rendererRef.current = renderer;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1));
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
+    renderer.domElement.style.display = "block";
+    container.appendChild(renderer.domElement);
 
     const resize = () => {
-      const w = container.clientWidth || 1;
-      const h = container.clientHeight || 1;
-      renderer.setSize(w, h);
-      program.uniforms.uResolution.value = [gl.drawingBufferWidth, gl.drawingBufferHeight];
+      const width = Math.max(container.clientWidth, 1);
+      const height = Math.max(container.clientHeight, 1);
+      renderer.setSize(width, height, false);
+      material.uniforms.uResolution.value.set(renderer.domElement.width, renderer.domElement.height);
     };
 
-    let ro: ResizeObserver | null = null;
-    if ("ResizeObserver" in window) {
-      ro = new ResizeObserver(resize);
-      ro.observe(container);
-    } else {
-      window.addEventListener("resize", resize);
-    }
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(container);
     resize();
 
-    const onPointer = (e: PointerEvent) => {
+    const clock = new THREE.Clock();
+    const visibilityObserver = new IntersectionObserver(([entry]) => {
+      visibleRef.current = entry.isIntersecting;
+    });
+    visibilityObserver.observe(container);
+
+    const render = (now: number) => {
+      frameRef.current = requestAnimationFrame(render);
+      if (!visibleRef.current || document.hidden) return;
+      const interval = 1000 / fpsRef.current;
+      if (now - lastFrameRef.current < interval) return;
+      lastFrameRef.current = now - ((now - lastFrameRef.current) % interval);
+      const delta = Math.min(clock.getDelta(), 0.1);
+      if (!pausedRef.current) material.uniforms.uTime.value += delta * material.uniforms.uSpeed.value;
+      pointerCurrentRef.current.lerp(pointerTargetRef.current, 0.08);
+      material.uniforms.uPointer.value.copy(pointerCurrentRef.current);
+      renderer.render(scene, camera);
+    };
+
+    render(0);
+
+    const onPointerMove = (event: PointerEvent) => {
       const rect = container.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / Math.max(rect.width, 1);
-      const y = (e.clientY - rect.top) / Math.max(rect.height, 1);
-      mouseTargetRef.current = [Math.min(Math.max(x, 0), 1), Math.min(Math.max(y, 0), 1)];
-    };
-    container.addEventListener("pointermove", onPointer, { passive: true });
-
-    let io: IntersectionObserver | null = null;
-    if ("IntersectionObserver" in window) {
-      io = new IntersectionObserver(
-        (entries) => {
-          if (entries[0]) {
-            isVisibleRef.current = entries[0].isIntersecting;
-          }
-        },
-        { root: null, threshold: 0.01 }
+      pointerTargetRef.current.set(
+        ((event.clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1,
+        -(((event.clientY - rect.top) / Math.max(rect.height, 1)) * 2 - 1)
       );
-      io.observe(container);
-    }
-
-    const onVis = () => {};
-    document.addEventListener("visibilitychange", onVis);
-
-    let raf = 0;
-    let last = performance.now();
-    let accumTime = 0;
-
-    const update = (now: number) => {
-      const dt = Math.max(0, now - last) * 0.001;
-      last = now;
-      const visible = isVisibleRef.current && !document.hidden;
-      if (!pausedRef.current) accumTime += dt;
-
-      if (!visible) {
-        raf = requestAnimationFrame(update);
-        return;
-      }
-
-      const tau = 0.02 + Math.max(0, Math.min(1, hoverDampRef.current)) * 0.5;
-      const alpha = 1 - Math.exp(-dt / tau);
-      const tgt = mouseTargetRef.current;
-      const sm = mouseSmoothRef.current;
-      sm[0] += (tgt[0] - sm[0]) * alpha;
-      sm[1] += (tgt[1] - sm[1]) * alpha;
-
-      program.uniforms.uMouse.value = sm;
-      program.uniforms.uTime.value = accumTime;
-
-      renderer.render({ scene: meshRef.current! });
-      raf = requestAnimationFrame(update);
     };
-    raf = requestAnimationFrame(update);
+    const onPointerLeave = () => pointerTargetRef.current.set(0, 0);
+    container.addEventListener("pointermove", onPointerMove, { passive: true });
+    container.addEventListener("pointerleave", onPointerLeave);
 
     return () => {
-      cancelAnimationFrame(raf);
-      container.removeEventListener("pointermove", onPointer);
-      ro?.disconnect();
-      if (!ro) window.removeEventListener("resize", resize);
-      io?.disconnect();
-      document.removeEventListener("visibilitychange", onVis);
-      try {
-        container.removeChild(gl.canvas);
-      } catch {}
-      try {
-        meshRef.current?.remove?.();
-      } catch {}
-      try {
-        triRef.current?.remove?.();
-      } catch {}
-      try {
-        programRef.current?.remove?.();
-      } catch {}
-      try {
-        const glCtx = rendererRef.current?.gl;
-        if (glCtx && gradTexRef.current?.texture) {
-          glCtx.deleteTexture(gradTexRef.current.texture);
-        }
-      } catch {}
-      programRef.current = null;
+      cancelAnimationFrame(frameRef.current);
+      resizeObserver.disconnect();
+      visibilityObserver.disconnect();
+      container.removeEventListener("pointermove", onPointerMove);
+      container.removeEventListener("pointerleave", onPointerLeave);
+      geometry.dispose();
+      material.dispose();
+      renderer.dispose();
+      renderer.domElement.remove();
+      materialRef.current = null;
       rendererRef.current = null;
-      gradTexRef.current = null;
-      meshRef.current = null;
-      triRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    const canvas = rendererRef.current?.gl?.canvas;
-    if (canvas) {
-      canvas.style.mixBlendMode = lightMode
-        ? "normal"
-        : mixBlendMode && mixBlendMode !== "none"
-        ? mixBlendMode
-        : "";
-    }
-  }, [mixBlendMode, lightMode]);
-
-  useEffect(() => {
-    const program = programRef.current;
+    const material = materialRef.current;
     const renderer = rendererRef.current;
-    const gradTex = gradTexRef.current;
-    if (!program || !renderer || !gradTex) return;
-
-    program.uniforms.uIntensity.value = intensity ?? 1;
-    program.uniforms.uSpeed.value = speed ?? 1;
-
-    const animTypeMap: Record<string, number> = { rotate: 0, rotate3d: 1, hover: 2 };
-    program.uniforms.uAnimType.value = animTypeMap[animationType ?? "rotate"];
-
-    program.uniforms.uDistort.value = typeof distort === "number" ? distort : 0;
-
-    const ox = toPx(offset?.x);
-    const oy = toPx(offset?.y);
-    program.uniforms.uOffset.value = [ox, oy];
-    program.uniforms.uRayCount.value = Math.max(0, Math.floor(rayCount ?? 0));
-    program.uniforms.uLightMode.value = lightMode ? 1 : 0;
-
-    let count = 0;
-    if (Array.isArray(colors) && colors.length > 0) {
-      const gl = renderer.gl;
-      const capped = colors.slice(0, 64);
-      count = capped.length;
-      const data = new Uint8Array(count * 4);
-      for (let i = 0; i < count; i++) {
-        const [r, g, b] = hexToRgb01(capped[i]);
-        data[i * 4 + 0] = Math.round(r * 255);
-        data[i * 4 + 1] = Math.round(g * 255);
-        data[i * 4 + 2] = Math.round(b * 255);
-        data[i * 4 + 3] = 255;
-      }
-      gradTex.image = data;
-      gradTex.width = count;
-      gradTex.height = 1;
-      gradTex.minFilter = gl.LINEAR;
-      gradTex.magFilter = gl.LINEAR;
-      gradTex.wrapS = gl.CLAMP_TO_EDGE;
-      gradTex.wrapT = gl.CLAMP_TO_EDGE;
-      gradTex.flipY = false;
-      gradTex.generateMipmaps = false;
-      gradTex.format = gl.RGBA;
-      gradTex.type = gl.UNSIGNED_BYTE;
-      gradTex.needsUpdate = true;
-    } else {
-      count = 0;
+    if (!material || !renderer) return;
+    const uniforms = material.uniforms;
+    uniforms.uColor.value.set(color);
+    uniforms.uBackgroundColor.value.set(backgroundColor);
+    uniforms.uSpeed.value = speed;
+    uniforms.uCurvature.value = curvature;
+    uniforms.uScanlineStrength.value = scanlineStrength;
+    uniforms.uScanlineFrequency.value = scanlineFrequency;
+    uniforms.uWaveAmplitude.value = waveAmplitude;
+    uniforms.uWaveFrequency.value = waveFrequency;
+    uniforms.uBloom.value = bloom;
+    uniforms.uBloomRadius.value = bloomRadius;
+    uniforms.uNoise.value = noise;
+    uniforms.uVignette.value = vignette;
+    uniforms.uBrightness.value = brightness;
+    uniforms.uPixelation.value = pixelation;
+    uniforms.uRgbShift.value = rgbShift;
+    uniforms.uMouseReact.value = mouseReact ? 1 : 0;
+    uniforms.uMouseStrength.value = mouseStrength;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dpr));
+    const container = containerRef.current;
+    if (container) {
+      renderer.setSize(Math.max(container.clientWidth, 1), Math.max(container.clientHeight, 1), false);
+      uniforms.uResolution.value.set(renderer.domElement.width, renderer.domElement.height);
     }
-    program.uniforms.uColorCount.value = count;
-  }, [intensity, speed, animationType, colors, distort, offset, rayCount, lightMode]);
+  }, [
+    backgroundColor,
+    bloom,
+    bloomRadius,
+    brightness,
+    color,
+    curvature,
+    dpr,
+    mouseReact,
+    mouseStrength,
+    noise,
+    pixelation,
+    rgbShift,
+    scanlineFrequency,
+    scanlineStrength,
+    speed,
+    fps,
+    vignette,
+    waveAmplitude,
+    waveFrequency,
+  ]);
 
   return (
     <div
       ref={containerRef}
-      style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}
+      className={className}
+      style={{ width: "100%", height: "100%", position: "relative", overflow: "hidden", ...style }}
     />
   );
 }
@@ -517,7 +381,7 @@ const stagger = {
   show: { transition: { staggerChildren: 0.1 } },
 } as const;
 
-export default function CADPatternDesignPage() {
+export default function LaserMachinesPage() {
   const [list, setList] = useState<DbProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -534,11 +398,11 @@ export default function CADPatternDesignPage() {
       const { data: products, error } = await supabase
         .from("products")
         .select("*")
-        .eq("category", "cad-pattern-design")
+        .eq("category", "laser-machines")
         .order("sort_order", { ascending: true });
 
       if (error) {
-        console.error("Failed to load CAD Pattern Design products:", error.message);
+        console.error("Failed to load Laser Machines products:", error.message);
       }
 
       if (!cancelled) {
@@ -557,17 +421,27 @@ export default function CADPatternDesignPage() {
     <div className="bg-neutral-100 flex-1">
       <section ref={heroRef} className="relative bg-[#0A0A0A] text-white overflow-hidden">
         <motion.div style={{ y: bgY }} className="absolute inset-0">
-          <PrismaticBurst
-            animationType="rotate3d"
-            intensity={2}
+          <CRTWarp
+            color="#DC2626"
+            backgroundColor="#0A0A0A"
             speed={0.45}
-            distort={0.6}
+            curvature={0.3}
+            scanlineStrength={0.3}
+            scanlineFrequency={260}
+            waveAmplitude={0.28}
+            waveFrequency={5.5}
+            bloom={0.9}
+            bloomRadius={0.6}
+            noise={0.06}
+            vignette={0.55}
+            brightness={0.85}
+            pixelation={1}
+            rgbShift={0.012}
+            mouseReact
+            mouseStrength={0.4}
+            dpr={1}
+            fps={30}
             paused={false}
-            offset={{ x: 0, y: 0 }}
-            hoverDampness={0.25}
-            rayCount={0}
-            mixBlendMode="lighten"
-            colors={["#DC2626", "#7C1D1D", "#FCA5A5"]}
           />
           <div
             className="absolute inset-0 pointer-events-none"
@@ -586,7 +460,7 @@ export default function CADPatternDesignPage() {
             transition={{ duration: 0.5 }}
             className="text-red font-semibold tracking-widest uppercase text-sm mb-4"
           >
-            Digital Design &amp; Cutting
+            Precision Finishing
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 40, scale: 0.96 }}
@@ -595,7 +469,7 @@ export default function CADPatternDesignPage() {
             className="text-5xl sm:text-7xl font-bold"
             style={{ textShadow: "0 2px 24px rgba(0,0,0,0.65)" }}
           >
-            CAD Pattern Design
+            Laser Machines
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -603,7 +477,7 @@ export default function CADPatternDesignPage() {
             transition={{ duration: 0.7, delay: 0.3 }}
             className="mt-6 max-w-2xl mx-auto text-white/70 text-lg sm:text-xl"
           >
-            A complete digital suite for pattern making, digitization, marker planning, and precision cutting — from design to production.
+            Modern laser marking, finishing, and cutting technology for denim, garments, and sublimation fabrics.
           </motion.p>
 
           <motion.div
@@ -614,9 +488,9 @@ export default function CADPatternDesignPage() {
             className="mt-14 flex flex-wrap justify-center gap-10 sm:gap-16"
           >
             {[
-              { value: String(list.length), label: "Software Tools" },
-              { value: "60%", label: "Faster Development" },
-              { value: "30%", label: "Material Savings" },
+              { value: String(list.length), label: "Systems" },
+              { value: "2", label: "Global Brands" },
+              { value: "4x", label: "Productivity Gain" },
             ].map((stat) => (
               <motion.div key={stat.label} variants={fadeUp} className="text-center">
                 <div className="text-4xl sm:text-5xl font-bold text-white">{stat.value}</div>
@@ -629,7 +503,9 @@ export default function CADPatternDesignPage() {
 
       <section className="px-6 py-24">
         <div className="max-w-6xl mx-auto flex flex-col gap-16">
-          {loading && <p className="text-center text-black/40 py-16">Loading CAD pattern design tools…</p>}
+          {loading && (
+            <p className="text-center text-black/40 py-16">Loading laser machines…</p>
+          )}
 
           {!loading &&
             list.map((product, i) => (
@@ -655,8 +531,12 @@ export default function CADPatternDesignPage() {
             ))}
 
           {!loading && list.length === 0 && (
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-black/50 py-16">
-              No CAD pattern design tools available right now — check back soon.
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center text-black/50 py-16"
+            >
+              No laser machines available right now — check back soon.
             </motion.p>
           )}
         </div>

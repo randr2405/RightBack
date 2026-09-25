@@ -421,9 +421,9 @@ export default function LaserMachinesPage() {
             speed={0.45}
             curvature={0.3}
             scanlineStrength={0.3}
-            scanlineFrequency={280}
+                        scanlineFrequency={220}
             waveAmplitude={0.28}
-            waveFrequency={4.5}
+            waveFrequency={3.2}
             bloom={1.4}
             bloomRadius={0.8}
             noise={0.08}

@@ -52,45 +52,63 @@ export default function ProductCard({
     target: ref,
     offset: ["start end", "end start"],
   });
-  const imageScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.08, 1, 1.08]);
+  const imageScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.05, 1, 1.05]);
+  const imageY = useTransform(scrollYProgress, [0, 1], [-16, 16]);
 
   const activeGroup =
     tab.startsWith("group-") && groups
       ? groups[parseInt(tab.split("-")[1], 10)]
       : null;
 
-  return (
-    <article ref={ref} className="border-t border-black/10 first:border-t-0">
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-20 sm:py-28">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-12 gap-y-10">
-          <div className="lg:col-span-2 flex lg:flex-col items-baseline lg:items-start gap-3 lg:gap-6">
-            <span className="text-6xl sm:text-7xl font-light text-black/10 tabular-nums leading-none">
-              {String(index).padStart(2, "0")}
-            </span>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-black/40 lg:mt-auto">
-              {brand}
-            </span>
-          </div>
+  const isReversed = index % 2 === 0;
 
-          <div className="lg:col-span-4">
-            <div className="relative aspect-[4/3] overflow-hidden">
-              {imageSrc ? (
-                <motion.img
-                  style={{ scale: imageScale }}
-                  src={imageSrc}
-                  alt={name}
-                  className="w-full h-full object-contain scale-150"
-                />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-black/20">
-                  <ImageIcon size={32} strokeWidth={1} />
-                  <span className="text-[11px] tracking-wide">No image yet</span>
+  return (
+    <article ref={ref} className="relative">
+      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-16 sm:py-20">
+        <div
+          className={`grid grid-cols-1 lg:grid-cols-12 gap-x-10 gap-y-10 items-center ${
+            isReversed ? "lg:[direction:rtl]" : ""
+          }`}
+        >
+          <div
+            className={`lg:col-span-5 [direction:ltr] ${
+              isReversed ? "lg:order-2" : ""
+            }`}
+          >
+            <div className="relative">
+              <span className="absolute -top-8 -left-2 text-8xl sm:text-9xl font-black text-black/[0.04] tabular-nums leading-none select-none pointer-events-none">
+                {String(index).padStart(2, "0")}
+              </span>
+
+              <div className="relative rounded-3xl bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-black/[0.06] overflow-hidden">
+                <div className="relative aspect-[4/3] overflow-hidden bg-white">
+                  {imageSrc ? (
+                    <motion.img
+                      style={{ scale: imageScale, y: imageY }}
+                      src={imageSrc}
+                      alt={name}
+                      className="w-full h-full object-contain p-6"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-black/20">
+                      <ImageIcon size={32} strokeWidth={1} />
+                      <span className="text-[11px] tracking-wide">No image yet</span>
+                    </div>
+                  )}
                 </div>
-              )}
+                <div className="px-5 py-3 border-t border-black/[0.06] flex items-center justify-between">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-black/40">
+                    {brand}
+                  </span>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-red">
+                    {String(index).padStart(2, "0")}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="lg:col-span-6">
+          <div className={`lg:col-span-7 [direction:ltr] ${isReversed ? "lg:order-1" : ""}`}>
             <h3 className="text-3xl sm:text-4xl font-semibold text-black leading-[1.1] tracking-tight mb-4">
               {name}
             </h3>
@@ -236,6 +254,10 @@ export default function ProductCard({
             )}
           </div>
         </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-6 lg:px-10">
+        <div className="border-t border-black/[0.06]" />
       </div>
     </article>
   );

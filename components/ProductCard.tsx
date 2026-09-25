@@ -73,13 +73,13 @@ export default function ProductCard({
           </div>
 
           <div className="lg:col-span-4">
-            <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
-                            {imageSrc ? (
+            <div className="relative aspect-[4/3] overflow-hidden">
+              {imageSrc ? (
                 <motion.img
                   style={{ scale: imageScale }}
                   src={imageSrc}
                   alt={name}
-                  className="w-full h-full object-contain scale-125"
+                  className="w-full h-full object-contain scale-150"
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-black/20">

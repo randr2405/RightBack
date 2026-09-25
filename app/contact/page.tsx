@@ -151,7 +151,7 @@ void main() {
     vec3 airColor = mix(backdrop, uGlowColor, 0.16);
 
     outputColor = mix(backdrop, airColor, atmosphere);
-            outputColor = mix(outputColor, fiberInk, clamp(fibers * 0.45, 0.0, 1.0));
+                outputColor = mix(outputColor, fiberInk, clamp(fibers * 0.65, 0.0, 1.0));
   } else {
     outputColor = backdrop + color;
   }
@@ -547,7 +547,7 @@ export default function ContactPage() {
           scale={3}
           rotation={0}
           rotationSpeed={0.25}
-                   layers={3}
+                 layers={4}
           waveAmplitude={0.015}
           waveFrequency={3}
           waveSpeed={0.15}
@@ -555,14 +555,14 @@ export default function ContactPage() {
           twist={0.1}
           twistFrequency={5}
           twistSpeed={1.2}
-          lineFrequency={2}
-          lineSpacing={1}
-          lineSharpness={10}
+          lineFrequency={4}
+          lineSpacing={1.5}
+          lineSharpness={8}
           glowFalloff={10}
-          glowIntensity={1.4}
-          brightness={1.8}
+          glowIntensity={1.8}
+          brightness={2.1}
           blueBoost={1}
-          vignette={0.85}
+          vignette={0.75}
           grain={0.05}
           dpr={1}
           lightMode={true}

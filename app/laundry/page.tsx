@@ -2,7 +2,12 @@
 
 import { Renderer, Program, Mesh, Triangle } from "ogl";
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import ProductCard from "@/components/ProductCard";
 import { supabase } from "@/lib/supabase";
 
@@ -265,18 +270,78 @@ const stagger = {
   show: { transition: { staggerChildren: 0.1 } },
 } as const;
 
+function ScrollCard({
+  index,
+  product,
+}: {
+  index: number;
+  product: DbProduct;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+
+  const direction = index % 2 === 0 ? -1 : 1;
+
+  const opacity = useTransform(scrollYProgress, [0, 0.22, 1], [0, 1, 1]);
+  const y = useTransform(scrollYProgress, [0, 0.22], [90, 0]);
+  const x = useTransform(scrollYProgress, [0, 0.22], [direction * 60, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.22], [0.94, 1]);
+  const rotate = useTransform(scrollYProgress, [0, 0.22], [direction * 1.5, 0]);
+
+  return (
+    <motion.div ref={ref} style={{ opacity, y, x, scale, rotate }}>
+      <ProductCard
+        index={index + 1}
+        brand={product.brand}
+        name={product.name}
+        tagline={product.tagline ?? ""}
+        description={product.description}
+        moreInfo={product.more_info}
+        groups={product.groups}
+        specs={product.specs}
+        imageSrc={product.image_url ?? undefined}
+      />
+    </motion.div>
+  );
+}
+
 export default function LaundryPage() {
   const [list, setList] = useState<DbProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   const heroRef = useRef(null);
-  const { scrollYProgress } = useScroll({
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress: heroProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
   });
-  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.2]);
-  const heroContentY = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+  const heroOpacity = useTransform(heroProgress, [0, 1], [1, 0.2]);
+  const heroContentY = useTransform(heroProgress, [0, 1], [0, 120]);
+  const heroContentScale = useTransform(heroProgress, [0, 1], [1, 0.92]);
+  const bgY = useTransform(heroProgress, [0, 1], ["0%", "20%"]);
+  const bgScale = useTransform(heroProgress, [0, 1], [1, 1.2]);
+  const statsY = useTransform(heroProgress, [0, 1], [0, -40]);
+
+  const { scrollYProgress: pageProgress } = useScroll();
+  const progressScale = useSpring(pageProgress, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.3,
+  });
+
+  const { scrollYProgress: listProgress } = useScroll({
+    target: listRef,
+    offset: ["start end", "end end"],
+  });
+  const railScale = useSpring(listProgress, {
+    stiffness: 100,
+    damping: 25,
+    mass: 0.3,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -306,11 +371,20 @@ export default function LaundryPage() {
 
   return (
     <div className="bg-neutral-100 flex-1">
+      <motion.div
+        aria-hidden
+        style={{ scaleX: progressScale }}
+        className="fixed top-0 left-0 right-0 h-1 origin-left bg-[#DC2626] z-[60]"
+      />
+
       <section
         ref={heroRef}
         className="relative bg-[#0A0A0A] text-white overflow-hidden"
       >
-        <motion.div style={{ y: bgY }} className="absolute inset-0">
+        <motion.div
+          style={{ y: bgY, scale: bgScale }}
+          className="absolute inset-0"
+        >
           <Balatro
             isRotate={false}
             mouseInteraction
@@ -329,17 +403,12 @@ export default function LaundryPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
         </motion.div>
 
-        <div
-          aria-hidden
-          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
-        >
-          <span className="text-[22vw] font-black tracking-tighter text-white/[0.04] leading-none">
-            YILMAK
-          </span>
-        </div>
-
         <motion.div
-          style={{ opacity: heroOpacity, y: heroContentY }}
+          style={{
+            opacity: heroOpacity,
+            y: heroContentY,
+            scale: heroContentScale,
+          }}
           className="relative px-6 pt-28 pb-24 text-center"
         >
           <motion.p
@@ -369,69 +438,71 @@ export default function LaundryPage() {
             built on decades of engineering expertise.
           </motion.p>
 
-          <motion.div
-            initial="hidden"
-            animate="show"
-            variants={stagger}
-            transition={{ delayChildren: 0.5 }}
-            className="mt-14 flex flex-wrap justify-center gap-10 sm:gap-16"
-          >
-            {[
-              { value: String(list.length), label: "Machine Lines" },
-              { value: "70%", label: "Higher Output" },
-              { value: "50%", label: "Energy Savings" },
-            ].map((stat) => (
-              <motion.div key={stat.label} variants={fadeUp} className="text-center">
-                <div className="text-4xl sm:text-5xl font-bold text-white">
-                  {stat.value}
-                </div>
-                <div className="mt-1 text-sm uppercase tracking-wider text-white/50">
-                  {stat.label}
-                </div>
-              </motion.div>
-            ))}
+          <motion.div style={{ y: statsY }}>
+            <motion.div
+              initial="hidden"
+              animate="show"
+              variants={stagger}
+              transition={{ delayChildren: 0.5 }}
+              className="mt-14 flex flex-wrap justify-center gap-10 sm:gap-16"
+            >
+              {[
+                { value: String(list.length), label: "Machine Lines" },
+                { value: "70%", label: "Higher Output" },
+                { value: "50%", label: "Energy Savings" },
+              ].map((stat) => (
+                <motion.div
+                  key={stat.label}
+                  variants={fadeUp}
+                  className="text-center"
+                >
+                  <div className="text-4xl sm:text-5xl font-bold text-white">
+                    {stat.value}
+                  </div>
+                  <div className="mt-1 text-sm uppercase tracking-wider text-white/50">
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
           </motion.div>
         </motion.div>
       </section>
 
       <section className="px-6 py-24">
-        <div className="max-w-6xl mx-auto flex flex-col gap-16">
-          {loading && (
-            <p className="text-center text-black/40 py-16">Loading laundry machines…</p>
-          )}
+        <div ref={listRef} className="relative max-w-6xl mx-auto">
+          <div
+            aria-hidden
+            className="hidden xl:block absolute -left-8 top-0 bottom-0 w-px bg-black/10"
+          >
+            <motion.div
+              style={{ scaleY: railScale }}
+              className="w-full h-full origin-top bg-[#DC2626]"
+            />
+          </div>
 
-          {!loading &&
-            list.map((product, i) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 80, scale: 0.97 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          <div className="flex flex-col gap-16">
+            {loading && (
+              <p className="text-center text-black/40 py-16">
+                Loading laundry machines…
+              </p>
+            )}
+
+            {!loading &&
+              list.map((product, i) => (
+                <ScrollCard key={product.id} index={i} product={product} />
+              ))}
+
+            {!loading && list.length === 0 && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center text-black/50 py-16"
               >
-                <ProductCard
-                  index={i + 1}
-                  brand={product.brand}
-                  name={product.name}
-                  tagline={product.tagline ?? ""}
-                  description={product.description}
-                  moreInfo={product.more_info}
-                  groups={product.groups}
-                  specs={product.specs}
-                  imageSrc={product.image_url ?? undefined}
-                />
-              </motion.div>
-            ))}
-
-          {!loading && list.length === 0 && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center text-black/50 py-16"
-            >
-              No laundry machines available right now — check back soon.
-            </motion.p>
-          )}
+                No laundry machines available right now — check back soon.
+              </motion.p>
+            )}
+          </div>
         </div>
       </section>
     </div>

@@ -649,7 +649,6 @@ export default function PatternMarkerPlottersPage() {
   const titleTracking = useTransform(heroProgress, [0, 1], ["0em", "0.06em"]);
   const subtitleY = useTransform(heroProgress, [0, 1], [0, 90]);
   const subtitleOpacity = useTransform(heroProgress, [0, 0.6], [1, 0]);
-  const cueOpacity = useTransform(heroProgress, [0, 0.15], [1, 0]);
 
   const { scrollYProgress: pageProgress } = useScroll();
   const progressScale = useSpring(pageProgress, {
@@ -835,20 +834,6 @@ export default function PatternMarkerPlottersPage() {
                 </motion.div>
               ))}
             </motion.div>
-          </motion.div>
-
-          {/* Scroll cue: fades out as soon as the user scrolls */}
-          <motion.div
-            aria-hidden
-            style={{ opacity: cueOpacity }}
-            className="mt-14 flex flex-col items-center gap-2 text-white/50 text-xs uppercase tracking-[0.3em]"
-          >
-            <span>Scroll</span>
-            <motion.span
-              animate={reduced ? undefined : { y: [0, 8, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-              className="block w-px h-8 bg-white/40"
-            />
           </motion.div>
         </motion.div>
       </section>

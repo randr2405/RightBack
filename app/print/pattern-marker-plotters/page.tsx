@@ -7,6 +7,9 @@ import {
   useScroll,
   useSpring,
   useTransform,
+  useMotionValueEvent,
+  useReducedMotion,
+  AnimatePresence,
 } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
 import { supabase } from "@/lib/supabase";
@@ -561,9 +564,11 @@ const stagger = {
 function ScrollCard({
   index,
   product,
+  reduced,
 }: {
   index: number;
   product: DbProduct;
+  reduced: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -573,14 +578,35 @@ function ScrollCard({
 
   const direction = index % 2 === 0 ? -1 : 1;
 
-  const opacity = useTransform(scrollYProgress, [0, 0.22, 1], [0, 1, 1]);
-  const y = useTransform(scrollYProgress, [0, 0.22], [90, 0]);
+  // Enter (0 -> 0.22), hold, then gently recede as the card leaves (0.8 -> 1)
+  const opacity = useTransform(scrollYProgress, [0, 0.22, 0.8, 1], [0, 1, 1, 0.35]);
+  const y = useTransform(scrollYProgress, [0, 0.22, 0.8, 1], [90, 0, 0, -40]);
   const x = useTransform(scrollYProgress, [0, 0.22], [direction * 60, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.22], [0.94, 1]);
+  const scale = useTransform(scrollYProgress, [0, 0.22, 0.8, 1], [0.94, 1, 1, 0.97]);
   const rotate = useTransform(scrollYProgress, [0, 0.22], [direction * 1.5, 0]);
+  const blurPx = useTransform(scrollYProgress, [0, 0.18], [6, 0]);
+  const filter = useTransform(blurPx, (b) => `blur(${b}px)`);
+
+  // Small accent bar that fills while the card crosses the viewport
+  const accent = useTransform(scrollYProgress, [0.1, 0.6], [0, 1]);
 
   return (
-    <motion.div ref={ref} style={{ opacity, y, x, scale, rotate }}>
+    <motion.div
+      ref={ref}
+      style={
+        reduced
+          ? undefined
+          : { opacity, y, x, scale, rotate, filter, willChange: "transform, opacity" }
+      }
+      className="relative"
+    >
+      {!reduced && (
+        <motion.div
+          aria-hidden
+          style={{ scaleX: accent }}
+          className="absolute -top-4 left-0 right-0 h-0.5 origin-left bg-[#DC2626]/70 rounded-full"
+        />
+      )}
       <ProductCard
         index={index + 1}
         brand={product.brand}
@@ -599,9 +625,12 @@ function ScrollCard({
 export default function PatternMarkerPlottersPage() {
   const [list, setList] = useState<DbProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTop, setShowTop] = useState(false);
+  const reduced = !!useReducedMotion();
 
   const heroRef = useRef(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const bandRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress: heroProgress } = useScroll({
     target: heroRef,
@@ -614,11 +643,23 @@ export default function PatternMarkerPlottersPage() {
   const bgScale = useTransform(heroProgress, [0, 1], [1, 1.2]);
   const statsY = useTransform(heroProgress, [0, 1], [0, -40]);
 
+  // Layered parallax: each hero element drifts at its own rate
+  const eyebrowY = useTransform(heroProgress, [0, 1], [0, -30]);
+  const titleY = useTransform(heroProgress, [0, 1], [0, 60]);
+  const titleTracking = useTransform(heroProgress, [0, 1], ["0em", "0.06em"]);
+  const subtitleY = useTransform(heroProgress, [0, 1], [0, 90]);
+  const subtitleOpacity = useTransform(heroProgress, [0, 0.6], [1, 0]);
+  const cueOpacity = useTransform(heroProgress, [0, 0.15], [1, 0]);
+
   const { scrollYProgress: pageProgress } = useScroll();
   const progressScale = useSpring(pageProgress, {
     stiffness: 120,
     damping: 24,
     mass: 0.3,
+  });
+
+  useMotionValueEvent(pageProgress, "change", (v) => {
+    setShowTop(v > 0.12);
   });
 
   const { scrollYProgress: listProgress } = useScroll({
@@ -630,6 +671,15 @@ export default function PatternMarkerPlottersPage() {
     damping: 25,
     mass: 0.3,
   });
+  const railDotTop = useTransform(railScale, (v) => `${Math.min(Math.max(v, 0), 1) * 100}%`);
+
+  // Marquee band: text slides horizontally as the band scrolls through view
+  const { scrollYProgress: bandProgress } = useScroll({
+    target: bandRef,
+    offset: ["start end", "end start"],
+  });
+  const bandX = useTransform(bandProgress, [0, 1], ["10%", "-35%"]);
+  const bandXReverse = useTransform(bandProgress, [0, 1], ["-35%", "10%"]);
 
   useEffect(() => {
     let cancelled = false;
@@ -673,7 +723,7 @@ export default function PatternMarkerPlottersPage() {
         className="relative bg-[#0A0A0A] text-white overflow-hidden"
       >
         <motion.div
-          style={{ y: bgY, scale: bgScale }}
+          style={reduced ? undefined : { y: bgY, scale: bgScale }}
           className="absolute inset-0"
         >
           <AcidSquares
@@ -711,41 +761,55 @@ export default function PatternMarkerPlottersPage() {
         </motion.div>
 
         <motion.div
-          style={{
-            opacity: heroOpacity,
-            y: heroContentY,
-            scale: heroContentScale,
-          }}
+          style={
+            reduced
+              ? undefined
+              : {
+                  opacity: heroOpacity,
+                  y: heroContentY,
+                  scale: heroContentScale,
+                }
+          }
           className="relative px-6 pt-28 pb-24 text-center"
         >
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-red font-semibold tracking-widest uppercase text-sm mb-4"
+          <motion.div style={reduced ? undefined : { y: eyebrowY }}>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-red font-semibold tracking-widest uppercase text-sm mb-4"
+            >
+              Print
+            </motion.p>
+          </motion.div>
+          <motion.div
+            style={reduced ? undefined : { y: titleY, letterSpacing: titleTracking }}
           >
-            Print
-          </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, y: 40, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-            className="text-5xl sm:text-7xl font-bold"
-            style={{ textShadow: "0 2px 24px rgba(0,0,0,0.65)" }}
+            <motion.h1
+              initial={{ opacity: 0, y: 40, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+              className="text-5xl sm:text-7xl font-bold"
+              style={{ textShadow: "0 2px 24px rgba(0,0,0,0.65)" }}
+            >
+              Pattern Marker Plotters
+            </motion.h1>
+          </motion.div>
+          <motion.div
+            style={reduced ? undefined : { y: subtitleY, opacity: subtitleOpacity }}
           >
-            Pattern Marker Plotters
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="mt-6 max-w-2xl mx-auto text-white/70 text-lg sm:text-xl"
-          >
-            High-precision plotting and cutting technology for accurate,
-            cost-efficient pattern marker production.
-          </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="mt-6 max-w-2xl mx-auto text-white/70 text-lg sm:text-xl"
+            >
+              High-precision plotting and cutting technology for accurate,
+              cost-efficient pattern marker production.
+            </motion.p>
+          </motion.div>
 
-          <motion.div style={{ y: statsY }}>
+          <motion.div style={reduced ? undefined : { y: statsY }}>
             <motion.div
               initial="hidden"
               animate="show"
@@ -772,10 +836,66 @@ export default function PatternMarkerPlottersPage() {
               ))}
             </motion.div>
           </motion.div>
+
+          {/* Scroll cue: fades out as soon as the user scrolls */}
+          <motion.div
+            aria-hidden
+            style={{ opacity: cueOpacity }}
+            className="mt-14 flex flex-col items-center gap-2 text-white/50 text-xs uppercase tracking-[0.3em]"
+          >
+            <span>Scroll</span>
+            <motion.span
+              animate={reduced ? undefined : { y: [0, 8, 0] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+              className="block w-px h-8 bg-white/40"
+            />
+          </motion.div>
         </motion.div>
       </section>
 
+      {/* Scroll-driven marquee band */}
+      <div
+        ref={bandRef}
+        aria-hidden
+        className="overflow-hidden bg-[#0A0A0A] py-6 select-none"
+      >
+        <motion.div
+          style={reduced ? undefined : { x: bandX }}
+          className="whitespace-nowrap text-4xl sm:text-6xl font-bold uppercase text-white/10"
+        >
+          Plot • Cut • Precision • Plot • Cut • Precision • Plot • Cut • Precision
+        </motion.div>
+        <motion.div
+          style={reduced ? undefined : { x: bandXReverse }}
+          className="whitespace-nowrap text-4xl sm:text-6xl font-bold uppercase text-[#DC2626]/40"
+        >
+          H9 Series • Accurate • Efficient • H9 Series • Accurate • Efficient
+        </motion.div>
+      </div>
+
       <section className="px-6 py-24">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="max-w-6xl mx-auto mb-16 text-center"
+        >
+          <p className="text-[#DC2626] font-semibold tracking-widest uppercase text-sm mb-3">
+            The Range
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-black">
+            Choose your plotter
+          </h2>
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            className="mx-auto mt-5 h-0.5 w-24 origin-center bg-[#DC2626]"
+          />
+        </motion.div>
+
         <div ref={listRef} className="relative max-w-6xl mx-auto">
           <div
             aria-hidden
@@ -784,6 +904,10 @@ export default function PatternMarkerPlottersPage() {
             <motion.div
               style={{ scaleY: railScale }}
               className="w-full h-full origin-top bg-[#DC2626]"
+            />
+            <motion.div
+              style={{ top: railDotTop }}
+              className="absolute -left-[3px] w-[7px] h-[7px] -translate-y-1/2 rounded-full bg-[#DC2626] shadow-[0_0_10px_2px_rgba(220,38,38,0.6)]"
             />
           </div>
 
@@ -796,7 +920,12 @@ export default function PatternMarkerPlottersPage() {
 
             {!loading &&
               list.map((product, i) => (
-                <ScrollCard key={product.id} index={i} product={product} />
+                <ScrollCard
+                  key={product.id}
+                  index={i}
+                  product={product}
+                  reduced={reduced}
+                />
               ))}
 
             {!loading && list.length === 0 && (
@@ -812,6 +941,26 @@ export default function PatternMarkerPlottersPage() {
           </div>
         </div>
       </section>
+
+      <AnimatePresence>
+        {showTop && (
+          <motion.button
+            key="back-to-top"
+            type="button"
+            aria-label="Back to top"
+            initial={{ opacity: 0, y: 20, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.8 }}
+            transition={{ duration: 0.25 }}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="fixed bottom-6 right-6 z-[60] h-11 w-11 rounded-full bg-[#DC2626] text-white shadow-lg flex items-center justify-center"
+          >
+            ↑
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

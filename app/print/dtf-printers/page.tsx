@@ -1,6 +1,5 @@
 ﻿"use client";
 
-/* eslint-disable react/no-unknown-property */
 import {
   forwardRef,
   useImperativeHandle,
@@ -12,13 +11,14 @@ import {
 import * as THREE from "three";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
-import { degToRad } from "three/src/math/MathUtils.js";
 import {
   motion,
   useScroll,
   useSpring,
   useTransform,
+  useMotionValueEvent,
   useReducedMotion,
+  AnimatePresence,
 } from "framer-motion";
 import ProductCard from "@/components/ProductCard";
 import { supabase } from "@/lib/supabase";
@@ -34,10 +34,6 @@ type DbProduct = {
   specs: { label: string; value: string }[];
   image_url: string | null;
 };
-
-/* ------------------------------------------------------------------ */
-/* Beams background                                                    */
-/* ------------------------------------------------------------------ */
 
 function extendMaterial(BaseMaterial: any, cfg: any) {
   const physical = THREE.ShaderLib.physical;
@@ -273,7 +269,7 @@ function Beams({
 
   return (
     <CanvasWrapper>
-      <group rotation={[0, 0, degToRad(rotation)]}>
+      <group rotation={[0, 0, THREE.MathUtils.degToRad(rotation)]}>
         <PlaneNoise
           ref={meshRef}
           material={beamMaterial}
@@ -347,29 +343,32 @@ function createStackedPlanesBufferGeometry(
   return geometry;
 }
 
-const MergedPlanes = forwardRef<
-  THREE.Mesh,
-  { material: THREE.ShaderMaterial; width: number; count: number; height: number }
->(({ material, width, count, height }, ref) => {
-  const mesh = useRef<THREE.Mesh>(null);
-  useImperativeHandle(ref, () => mesh.current as THREE.Mesh);
-  const geometry = useMemo(
-    () => createStackedPlanesBufferGeometry(count, width, height, 0, 100),
-    [count, width, height]
-  );
-  useFrame((_, delta) => {
-    if (!mesh.current) return;
-    (mesh.current.material as THREE.ShaderMaterial).uniforms.time.value +=
-      0.1 * delta;
-  });
-  return <mesh ref={mesh} geometry={geometry} material={material} />;
-});
+type PlaneProps = {
+  material: THREE.ShaderMaterial;
+  width: number;
+  count: number;
+  height: number;
+};
+
+const MergedPlanes = forwardRef<THREE.Mesh, PlaneProps>(
+  ({ material, width, count, height }, ref) => {
+    const mesh = useRef<THREE.Mesh>(null);
+    useImperativeHandle(ref, () => mesh.current as THREE.Mesh);
+    const geometry = useMemo(
+      () => createStackedPlanesBufferGeometry(count, width, height, 0, 100),
+      [count, width, height]
+    );
+    useFrame((_, delta) => {
+      if (!mesh.current) return;
+      (mesh.current.material as THREE.ShaderMaterial).uniforms.time.value +=
+        0.1 * delta;
+    });
+    return <mesh ref={mesh} geometry={geometry} material={material} />;
+  }
+);
 MergedPlanes.displayName = "MergedPlanes";
 
-const PlaneNoise = forwardRef<
-  THREE.Mesh,
-  { material: THREE.ShaderMaterial; width: number; count: number; height: number }
->((props, ref) => (
+const PlaneNoise = forwardRef<THREE.Mesh, PlaneProps>((props, ref) => (
   <MergedPlanes
     ref={ref}
     material={props.material}
@@ -404,10 +403,6 @@ const DirLight = ({
   );
 };
 
-/* ------------------------------------------------------------------ */
-/* Page                                                                */
-/* ------------------------------------------------------------------ */
-
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
   show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
@@ -439,12 +434,27 @@ function ScrollCard({
   const x = useTransform(scrollYProgress, [0, 0.22], [direction * 60, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.22, 0.8, 1], [0.94, 1, 1, 0.97]);
   const rotate = useTransform(scrollYProgress, [0, 0.22], [direction * 1.5, 0]);
+  const blurPx = useTransform(scrollYProgress, [0, 0.18], [6, 0]);
+  const filter = useTransform(blurPx, (b) => `blur(${b}px)`);
+  const accent = useTransform(scrollYProgress, [0.1, 0.6], [0, 1]);
 
   return (
     <motion.div
       ref={ref}
-      style={reduced ? undefined : { opacity, y, x, scale, rotate }}
+      style={
+        reduced
+          ? undefined
+          : { opacity, y, x, scale, rotate, filter, willChange: "transform, opacity" }
+      }
+      className="relative"
     >
+      {!reduced && (
+        <motion.div
+          aria-hidden
+          style={{ scaleX: accent }}
+          className="absolute -top-4 left-0 right-0 h-0.5 origin-left bg-[#DC2626]/70 rounded-full"
+        />
+      )}
       <ProductCard
         index={index + 1}
         brand={product.brand}
@@ -463,9 +473,13 @@ function ScrollCard({
 export default function DTFPrintersPage() {
   const [list, setList] = useState<DbProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTop, setShowTop] = useState(false);
   const reduced = !!useReducedMotion();
 
   const heroRef = useRef(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const bandRef = useRef<HTMLDivElement>(null);
+
   const { scrollYProgress: heroProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
@@ -474,7 +488,13 @@ export default function DTFPrintersPage() {
   const heroContentY = useTransform(heroProgress, [0, 1], [0, 120]);
   const heroContentScale = useTransform(heroProgress, [0, 1], [1, 0.92]);
   const bgY = useTransform(heroProgress, [0, 1], ["0%", "20%"]);
-  const ghostY = useTransform(heroProgress, [0, 1], [0, 160]);
+  const bgScale = useTransform(heroProgress, [0, 1], [1, 1.15]);
+  const statsY = useTransform(heroProgress, [0, 1], [0, -40]);
+  const eyebrowY = useTransform(heroProgress, [0, 1], [0, -30]);
+  const titleY = useTransform(heroProgress, [0, 1], [0, 60]);
+  const titleTracking = useTransform(heroProgress, [0, 1], ["0em", "0.06em"]);
+  const subtitleY = useTransform(heroProgress, [0, 1], [0, 90]);
+  const subtitleOpacity = useTransform(heroProgress, [0, 0.6], [1, 0]);
 
   const { scrollYProgress: pageProgress } = useScroll();
   const progressScale = useSpring(pageProgress, {
@@ -482,6 +502,31 @@ export default function DTFPrintersPage() {
     damping: 24,
     mass: 0.3,
   });
+
+  useMotionValueEvent(pageProgress, "change", (v) => {
+    setShowTop(v > 0.12);
+  });
+
+  const { scrollYProgress: listProgress } = useScroll({
+    target: listRef,
+    offset: ["start end", "end end"],
+  });
+  const railScale = useSpring(listProgress, {
+    stiffness: 100,
+    damping: 25,
+    mass: 0.3,
+  });
+  const railDotTop = useTransform(
+    railScale,
+    (v) => `${Math.min(Math.max(v, 0), 1) * 100}%`
+  );
+
+  const { scrollYProgress: bandProgress } = useScroll({
+    target: bandRef,
+    offset: ["start end", "end start"],
+  });
+  const bandX = useTransform(bandProgress, [0, 1], ["10%", "-35%"]);
+  const bandXReverse = useTransform(bandProgress, [0, 1], ["-35%", "10%"]);
 
   useEffect(() => {
     let cancelled = false;
@@ -522,7 +567,7 @@ export default function DTFPrintersPage() {
         className="relative bg-[#0A0A0A] text-white overflow-hidden"
       >
         <motion.div
-          style={reduced ? undefined : { y: bgY }}
+          style={reduced ? undefined : { y: bgY, scale: bgScale }}
           className="absolute inset-0"
         >
           <div style={{ width: "100%", height: "100%", position: "relative" }}>
@@ -550,14 +595,6 @@ export default function DTFPrintersPage() {
         </motion.div>
 
         <motion.div
-          aria-hidden
-          style={reduced ? undefined : { y: ghostY }}
-          className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-[22vw] font-black leading-none text-white/[0.04] select-none pointer-events-none"
-        >
-          LINKO
-        </motion.div>
-
-        <motion.div
           style={
             reduced
               ? undefined
@@ -569,82 +606,179 @@ export default function DTFPrintersPage() {
           }
           className="relative px-6 pt-28 pb-24 text-center"
         >
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-[#DC2626] font-semibold tracking-widest uppercase text-sm mb-4"
-          >
-            Print
-          </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, y: 40, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-            className="text-5xl sm:text-7xl font-bold"
-            style={{ textShadow: "0 2px 24px rgba(0,0,0,0.65)" }}
-          >
-            DTF Printers
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="mt-6 max-w-2xl mx-auto text-white/70 text-lg sm:text-xl"
-          >
-            Direct-to-film and UV DTF printing systems, plus precision flatbed
-            cutting — built for high-quality, high-volume garment decoration.
-          </motion.p>
-
+          <motion.div style={reduced ? undefined : { y: eyebrowY }}>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-[#DC2626] font-semibold tracking-widest uppercase text-sm mb-4"
+            >
+              Print
+            </motion.p>
+          </motion.div>
           <motion.div
-            initial="hidden"
-            animate="show"
-            variants={stagger}
-            transition={{ delayChildren: 0.5 }}
-            className="mt-14 flex flex-wrap justify-center gap-10 sm:gap-16"
+            style={reduced ? undefined : { y: titleY, letterSpacing: titleTracking }}
           >
-            {[
-              { value: String(list.length), label: "Systems" },
-              { value: "A3", label: "To Wide Format" },
-            ].map((stat) => (
-              <motion.div key={stat.label} variants={fadeUp} className="text-center">
-                <div className="text-4xl sm:text-5xl font-bold text-white">
-                  {stat.value}
-                </div>
-                <div className="mt-1 text-sm uppercase tracking-wider text-white/50">
-                  {stat.label}
-                </div>
-              </motion.div>
-            ))}
+            <motion.h1
+              initial={{ opacity: 0, y: 40, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+              className="text-5xl sm:text-7xl font-bold"
+              style={{ textShadow: "0 2px 24px rgba(0,0,0,0.65)" }}
+            >
+              DTF Printers
+            </motion.h1>
+          </motion.div>
+          <motion.div
+            style={reduced ? undefined : { y: subtitleY, opacity: subtitleOpacity }}
+          >
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="mt-6 max-w-2xl mx-auto text-white/70 text-lg sm:text-xl"
+            >
+              Direct-to-film and UV DTF printing systems, plus precision flatbed
+              cutting — built for high-quality, high-volume garment decoration.
+            </motion.p>
+          </motion.div>
+
+          <motion.div style={reduced ? undefined : { y: statsY }}>
+            <motion.div
+              initial="hidden"
+              animate="show"
+              variants={stagger}
+              transition={{ delayChildren: 0.5 }}
+              className="mt-14 flex flex-wrap justify-center gap-10 sm:gap-16"
+            >
+              {[
+                { value: String(list.length), label: "Systems" },
+                { value: "A3", label: "To Wide Format" },
+              ].map((stat) => (
+                <motion.div
+                  key={stat.label}
+                  variants={fadeUp}
+                  className="text-center"
+                >
+                  <div className="text-4xl sm:text-5xl font-bold text-white">
+                    {stat.value}
+                  </div>
+                  <div className="mt-1 text-sm uppercase tracking-wider text-white/50">
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
           </motion.div>
         </motion.div>
       </section>
 
+      <div
+        ref={bandRef}
+        aria-hidden
+        className="overflow-hidden bg-[#0A0A0A] py-6 select-none"
+      >
+        <motion.div
+          style={reduced ? undefined : { x: bandX }}
+          className="whitespace-nowrap text-4xl sm:text-6xl font-bold uppercase text-white/10"
+        >
+          Print • Press • Peel • Print • Press • Peel • Print • Press • Peel
+        </motion.div>
+        <motion.div
+          style={reduced ? undefined : { x: bandXReverse }}
+          className="whitespace-nowrap text-4xl sm:text-6xl font-bold uppercase text-[#DC2626]/40"
+        >
+          DTF • UV DTF • Flatbed Cutting • DTF • UV DTF • Flatbed Cutting
+        </motion.div>
+      </div>
+
       <section className="px-6 py-24">
-        <div className="relative max-w-6xl mx-auto flex flex-col gap-16">
-          {loading && (
-            <p className="text-center text-black/40 py-16">
-              Loading DTF printers…
-            </p>
-          )}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="max-w-6xl mx-auto mb-16 text-center"
+        >
+          <p className="text-[#DC2626] font-semibold tracking-widest uppercase text-sm mb-3">
+            The Range
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-black">
+            Choose your system
+          </h2>
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            className="mx-auto mt-5 h-0.5 w-24 origin-center bg-[#DC2626]"
+          />
+        </motion.div>
 
-          {!loading &&
-            list.map((product, i) => (
-              <ScrollCard
-                key={product.id}
-                index={i}
-                product={product}
-                reduced={reduced}
-              />
-            ))}
+        <div ref={listRef} className="relative max-w-6xl mx-auto">
+          <div
+            aria-hidden
+            className="hidden xl:block absolute -left-8 top-0 bottom-0 w-px bg-black/10"
+          >
+            <motion.div
+              style={{ scaleY: railScale }}
+              className="w-full h-full origin-top bg-[#DC2626]"
+            />
+            <motion.div
+              style={{ top: railDotTop }}
+              className="absolute -left-[3px] w-[7px] h-[7px] -translate-y-1/2 rounded-full bg-[#DC2626] shadow-[0_0_10px_2px_rgba(220,38,38,0.6)]"
+            />
+          </div>
 
-          {!loading && list.length === 0 && (
-            <p className="text-center text-black/50 py-16">
-              No DTF printers available right now — check back soon.
-            </p>
-          )}
+          <div className="flex flex-col gap-16">
+            {loading && (
+              <p className="text-center text-black/40 py-16">
+                Loading DTF printers…
+              </p>
+            )}
+
+            {!loading &&
+              list.map((product, i) => (
+                <ScrollCard
+                  key={product.id}
+                  index={i}
+                  product={product}
+                  reduced={reduced}
+                />
+              ))}
+
+            {!loading && list.length === 0 && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center text-black/50 py-16"
+              >
+                No DTF printers available right now — check back soon.
+              </motion.p>
+            )}
+          </div>
         </div>
       </section>
+
+      <AnimatePresence>
+        {showTop && (
+          <motion.button
+            key="back-to-top"
+            type="button"
+            aria-label="Back to top"
+            initial={{ opacity: 0, y: 20, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.8 }}
+            transition={{ duration: 0.25 }}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="fixed bottom-6 right-6 z-[60] h-11 w-11 rounded-full bg-[#DC2626] text-white shadow-lg flex items-center justify-center"
+          >
+            ↑
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

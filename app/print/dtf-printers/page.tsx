@@ -478,7 +478,6 @@ export default function DTFPrintersPage() {
 
   const heroRef = useRef(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const bandRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress: heroProgress } = useScroll({
     target: heroRef,
@@ -520,13 +519,6 @@ export default function DTFPrintersPage() {
     railScale,
     (v) => `${Math.min(Math.max(v, 0), 1) * 100}%`
   );
-
-  const { scrollYProgress: bandProgress } = useScroll({
-    target: bandRef,
-    offset: ["start end", "end start"],
-  });
-  const bandX = useTransform(bandProgress, [0, 1], ["10%", "-35%"]);
-  const bandXReverse = useTransform(bandProgress, [0, 1], ["-35%", "10%"]);
 
   useEffect(() => {
     let cancelled = false;
@@ -672,25 +664,6 @@ export default function DTFPrintersPage() {
           </motion.div>
         </motion.div>
       </section>
-
-      <div
-        ref={bandRef}
-        aria-hidden
-        className="overflow-hidden bg-[#0A0A0A] py-6 select-none"
-      >
-        <motion.div
-          style={reduced ? undefined : { x: bandX }}
-          className="whitespace-nowrap text-4xl sm:text-6xl font-bold uppercase text-white/10"
-        >
-          Print • Press • Peel • Print • Press • Peel • Print • Press • Peel
-        </motion.div>
-        <motion.div
-          style={reduced ? undefined : { x: bandXReverse }}
-          className="whitespace-nowrap text-4xl sm:text-6xl font-bold uppercase text-[#DC2626]/40"
-        >
-          DTF • UV DTF • Flatbed Cutting • DTF • UV DTF • Flatbed Cutting
-        </motion.div>
-      </div>
 
       <section className="px-6 py-24">
         <motion.div

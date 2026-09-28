@@ -276,14 +276,10 @@ function ScrollCard({
     target: ref,
     offset: ["start end", "end start"],
   });
-  const direction = index % 2 === 0 ? -1 : 1;
-
-  const opacity = useTransform(scrollYProgress, [0, 0.22, 0.8, 1], [0, 1, 1, 0.35]);
-  const y = useTransform(scrollYProgress, [0, 0.22, 0.8, 1], [90, 0, 0, -40]);
-  const x = useTransform(scrollYProgress, [0, 0.22], [direction * 60, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.22, 0.8, 1], [0.94, 1, 1, 0.97]);
-  const rotate = useTransform(scrollYProgress, [0, 0.22], [direction * 1.5, 0]);
-  const blurPx = useTransform(scrollYProgress, [0, 0.18], [6, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0, 1, 1, 0]);
+  const y = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [50, 0, 0, -30]);
+  const scale = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0.97, 1, 1, 0.98]);
+  const blurPx = useTransform(scrollYProgress, [0, 0.22], [8, 0]);
   const filter = useTransform(blurPx, (b) => `blur(${b}px)`);
   const accent = useTransform(scrollYProgress, [0.1, 0.6], [0, 1]);
 
@@ -293,7 +289,7 @@ function ScrollCard({
       style={
         reduced
           ? undefined
-          : { opacity, y, x, scale, rotate, filter, willChange: "transform, opacity" }
+          : { opacity, y, scale, filter, willChange: "transform, opacity" }
       }
       className="relative"
     >

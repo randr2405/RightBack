@@ -80,7 +80,7 @@ export default function ProductCard({
                 {String(index).padStart(2, "0")}
               </span>
 
-              <div className="relative rounded-3xl bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-black/[0.06] overflow-hidden">
+              <div className="relative rounded-3xl bg-white border border-red-600/25 shadow-[0_0_24px_-4px_rgba(220,38,38,0.35),0_20px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden">
                 <div className="relative aspect-[4/3] overflow-hidden bg-white">
                   {imageSrc ? (
                     <motion.img

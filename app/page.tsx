@@ -8,6 +8,7 @@ import { Camera, Color, Mesh, Plane, Program, Renderer, Texture, Transform, Tria
 import Lenis from "lenis";
 import Footer from "@/components/Footer";
 import AnimatedCounter from "@/components/AnimatedCounter";
+import HomeBanners from "@/components/HomeBanners";
 
 const AURORA_VERT = `#version 300 es
 in vec2 position;

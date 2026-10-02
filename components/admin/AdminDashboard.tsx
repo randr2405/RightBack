@@ -17,8 +17,10 @@ import {
   X,
   Package,
   Plus,
+  Megaphone,
 } from "lucide-react";
 import ProductsManager from "@/components/admin/ProductsManager";
+import BannersManager from "@/components/admin/BannersManager";
 
 type SiteSettings = {
   id: string | null;
@@ -49,12 +51,15 @@ const defaultSettings: SiteSettings = {
 const navSections = [
   { key: "general", label: "General", icon: LayoutDashboard },
   { key: "products", label: "Products", icon: Package },
+  { key: "banners", label: "Banners", icon: Megaphone },
   { key: "branding", label: "Branding", icon: Palette },
   { key: "contact", label: "Contact Info", icon: Phone },
   { key: "social", label: "Social Links", icon: Share2 },
 ] as const;
 
 type SectionKey = (typeof navSections)[number]["key"];
+
+const standaloneSections: SectionKey[] = ["products", "banners"];
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -68,6 +73,7 @@ export default function AdminDashboard() {
   const [saved, setSaved] = useState(false);
 
   const isDirty = JSON.stringify(settings) !== JSON.stringify(savedSettings);
+  const isSettingsSection = !standaloneSections.includes(activeSection);
 
   useEffect(() => {
     function handleBeforeUnload(e: BeforeUnloadEvent) {
@@ -80,7 +86,7 @@ export default function AdminDashboard() {
   }, [isDirty]);
 
   function handleSectionChange(key: SectionKey) {
-    if (isDirty && activeSection !== "products" && key !== activeSection) {
+    if (isDirty && isSettingsSection && key !== activeSection) {
       const confirmed = confirm("You have unsaved changes. Leave without saving?");
       if (!confirmed) return;
       setSettings(savedSettings);
@@ -207,7 +213,7 @@ export default function AdminDashboard() {
                 )}
                 <Icon size={16} className="relative z-10" />
                 <span className="relative z-10">{section.label}</span>
-                {isActive && isDirty && activeSection !== "products" && (
+                {isActive && isDirty && isSettingsSection && (
                   <span className="relative z-10 ml-auto w-1.5 h-1.5 rounded-full bg-red" />
                 )}
               </button>
@@ -218,7 +224,7 @@ export default function AdminDashboard() {
         <div className="px-3 py-4 border-t border-black/10">
           <button
             onClick={() => {
-              if (isDirty && activeSection !== "products") {
+              if (isDirty && isSettingsSection) {
                 const confirmed = confirm("You have unsaved changes. Log out anyway?");
                 if (!confirmed) return;
               }
@@ -250,6 +256,8 @@ export default function AdminDashboard() {
 
           {activeSection === "products" ? (
             <ProductsManager />
+          ) : activeSection === "banners" ? (
+            <BannersManager />
           ) : loadingSettings ? (
             <div className="text-black/40 text-sm py-10 text-center">Loading settings…</div>
           ) : (

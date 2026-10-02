@@ -1557,21 +1557,21 @@ const whatWeDo = [
     description:
       "High-performance sewing and automation solutions designed for speed, precision, and consistent quality across all garment types.",
     image: "/whatwedo/SSA.png",
-    href: "/sewing",
+    href: "/sewing/engineered-workstations",
   },
   {
     title: "Cutting & CAD Systems",
     description:
       "Digital cutting and CAD solutions that improve accuracy, reduce waste, and streamline production planning.",
     image: "/whatwedo/CCS.png",
-    href: "/cutting",
+    href: "/cutting/cnc-cutting",
   },
   {
     title: "Printing, Finishing & Laser",
     description:
       "Modern printing and laser finishing technologies that deliver premium results with lower water, energy, and labour usage.",
     image: "/whatwedo/PFL.png",
-    href: "/print",
+    href: "/print/dtf-printers",
   },
   {
     title: "Laundry & Garment Dyeing",

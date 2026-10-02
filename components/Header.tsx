@@ -48,7 +48,7 @@ const navItems = [
   { label: "Laser Machines", href: "/laser-machines" },
   {
     label: "Online Parts Store",
-    href: "https://acc.rightback.co.za:8443/ords/r/rbserp/streamline-retail-catalogue/rightback-catalogue-items",
+    href: "https://acc.rightback.co.za:8443/ords/r/rbserp/streamline-retail-catalogue/rightback-catalogue-items ",
     external: true,
   },
   { label: "Contact", href: "/contact" },
@@ -89,7 +89,11 @@ export default function Header() {
           className="flex items-center shrink-0"
         >
           {logoUrl ? (
-            <img src={logoUrl} alt={companyName} className="h-8 w-auto object-contain" />
+            <img
+              src={logoUrl}
+              alt={companyName}
+              className="h-10 sm:h-12 lg:h-14 w-auto object-contain"
+            />
           ) : (
             <span className="text-xl font-bold text-black">{companyName}</span>
           )}

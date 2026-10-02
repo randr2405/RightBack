@@ -1741,6 +1741,8 @@ export default function Home() {
         </motion.div>
       </section>
 
+      <HomeBanners />
+
       <motion.section
         initial="hidden"
         whileInView="show"

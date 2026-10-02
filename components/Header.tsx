@@ -46,6 +46,11 @@ const navItems = [
   { label: "Laundry", href: "/laundry" },
   { label: "CAD Pattern Design", href: "/cad-pattern-design" },
   { label: "Laser Machines", href: "/laser-machines" },
+  {
+    label: "Online Parts Store",
+    href: "https://acc.rightback.co.za:8443/ords/r/rbserp/streamline-retail-catalogue/rightback-catalogue-items",
+    external: true,
+  },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -129,6 +134,13 @@ export default function Header() {
                     <ChevronDown size={14} />
                   </motion.span>
                 </button>
+              ) : item.external ? (
+                <a
+                  href={item.href}
+                  className="relative text-sm font-medium text-black hover:text-red transition-colors py-2 px-3 rounded-full inline-block whitespace-nowrap"
+                >
+                  {item.label}
+                </a>
               ) : (
                 <Link
                   href={item.href}
@@ -290,6 +302,14 @@ export default function Header() {
                           )}
                         </AnimatePresence>
                       </>
+                    ) : item.external ? (
+                      <a
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className="block py-4 text-[15px] font-medium text-black"
+                      >
+                        {item.label}
+                      </a>
                     ) : (
                       <Link
                         href={item.href}

@@ -56,8 +56,6 @@ const navItems = [
 
 export default function Header() {
   const { companyName, logoUrl } = useSiteSettings();
-  const [firstWord, ...rest] = companyName.split(" ");
-  const restOfName = rest.join(" ");
 
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -75,7 +73,6 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Lock body scroll when mobile drawer is open
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => {
@@ -89,16 +86,15 @@ export default function Header() {
         <Link
           href="/"
           onClick={() => setMobileOpen(false)}
-          className="flex items-center gap-2.5 text-xl font-bold text-black"
+          className="flex items-center shrink-0"
         >
           {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt={companyName} className="h-8 w-auto object-contain" />
-          ) : null}
-          {firstWord} {restOfName && <span className="text-red">{restOfName}</span>}
+          ) : (
+            <span className="text-xl font-bold text-black">{companyName}</span>
+          )}
         </Link>
 
-        {/* Desktop nav */}
         <nav
           ref={navRef}
           onMouseLeave={() => setHoveredItem(null)}
@@ -206,7 +202,6 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* Mobile hamburger button */}
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
@@ -217,7 +212,6 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Mobile drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <>

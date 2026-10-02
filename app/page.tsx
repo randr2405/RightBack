@@ -1492,7 +1492,7 @@ function IndustriesFront() {
   return (
     <div className="relative w-full h-full flex items-center justify-center text-center overflow-hidden bg-[#1A1A1A]">
       <div className="absolute inset-0">
-        <Aurora colorStops={["#7F1D1D", "#DC2626", "#EF4444"]} blend={0.6} amplitude={0.9} speed={0.3} />
+        <Aurora colorStops={["#7F1D1D", "#DC2626", "#EF4444"]} blend={0.6} amplitude={1.2} speed={1.2} />
       </div>
       <div
         className="absolute inset-0 pointer-events-none"
@@ -1557,30 +1557,35 @@ const whatWeDo = [
     description:
       "High-performance sewing and automation solutions designed for speed, precision, and consistent quality across all garment types.",
     image: "/whatwedo/SSA.png",
+    href: "/sewing",
   },
   {
     title: "Cutting & CAD Systems",
     description:
       "Digital cutting and CAD solutions that improve accuracy, reduce waste, and streamline production planning.",
     image: "/whatwedo/CCS.png",
+    href: "/cutting",
   },
   {
     title: "Printing, Finishing & Laser",
     description:
       "Modern printing and laser finishing technologies that deliver premium results with lower water, energy, and labour usage.",
     image: "/whatwedo/PFL.png",
+    href: "/print",
   },
   {
     title: "Laundry & Garment Dyeing",
     description:
       "Efficient and sustainable laundry and dyeing systems that enhance garment quality while reducing resource consumption.",
     image: "/whatwedo/LYD.png",
+    href: "/laundry",
   },
   {
     title: "Denim & Jeans Technology",
     description:
       "Advanced machinery purpose-built for efficient, high-precision denim and jeans production.",
     image: "/whatwedo/DJT.png",
+    href: "/vibemac/jeans-technology",
   },
 ];
 
@@ -1685,7 +1690,7 @@ export default function Home() {
     <div className="flex flex-col flex-1 overflow-hidden bg-neutral-100">
       <section ref={heroRef} className="relative bg-[#1A1A1A] text-white text-center px-6 py-40 overflow-hidden">
         <div className="absolute inset-0 bg-[#1A1A1A]">
-          <Aurora colorStops={["#7F1D1D", "#DC2626", "#EF4444"]} blend={0.6} amplitude={0.9} speed={0.3} />
+          <Aurora colorStops={["#7F1D1D", "#DC2626", "#EF4444"]} blend={0.6} amplitude={1.2} speed={1.2} />
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-neutral-100 pointer-events-none" />
           <div
             className="absolute inset-0 pointer-events-none"
@@ -1726,7 +1731,7 @@ export default function Home() {
             transition={{ duration: 0.9, delay: 0.4, ease: "easeOut" }}
           >
             <Link
-              href="/contact"
+              href="/sewing/engineered-workstations"
               className="inline-block mt-10 px-10 py-4 border border-red text-white rounded-full text-lg hover:bg-red hover:text-white hover:scale-105 transition-all duration-300"
             >
               Explore our solutions
@@ -1808,9 +1813,12 @@ export default function Home() {
                 <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center text-white">
                   <h3 className="text-2xl md:text-3xl font-bold mb-4">{item.title}</h3>
                   <p className="text-white/70 text-base md:text-lg">{item.description}</p>
-                  <span className="mt-6 inline-block text-red text-sm font-medium cursor-pointer w-fit">
+                  <Link
+                    href={item.href}
+                    className="mt-6 inline-block text-red text-sm font-medium w-fit hover:underline"
+                  >
                     Learn more →
-                  </span>
+                  </Link>
                 </div>
               </div>
             </ScrollStackItem>

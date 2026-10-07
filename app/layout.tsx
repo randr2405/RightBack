@@ -15,9 +15,49 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://www.rightback.co.za";
+
 export const metadata: Metadata = {
-  title: "RightBack Technology",
-  description: "Advanced garment manufacturing solutions.",
+  metadataBase: new URL(SITE_URL),
+  applicationName: "RightBack Technology",
+  authors: [{ name: "RightBack Technology", url: SITE_URL }],
+  creator: "RightBack Technology",
+  publisher: "RightBack Technology",
+  category: "business",
+  title: {
+    default: "RightBack Technology | Garment Manufacturing Solutions",
+    template: "%s | RightBack Technology",
+  },
+  description:
+    "Advanced garment manufacturing solutions: turnkey factory setups, sewing machine spares and garment manufacturing consumables online.",
+  keywords: [
+    "advanced garment manufacturing solutions",
+    "turnkey garment manufacturing solutions",
+    "sewing machine spares online",
+    "garment manufacturing consumables online",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    title: "RightBack Technology | Garment Manufacturing Solutions",
+    description:
+      "Advanced garment manufacturing solutions: turnkey factory setups, sewing machine spares and garment manufacturing consumables online.",
+    url: "/",
+    siteName: "RightBack Technology",
+    locale: "en_ZA",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "RightBack Technology | Garment Manufacturing Solutions",
+    description:
+      "Advanced garment manufacturing solutions: turnkey factory setups, sewing machine spares and garment manufacturing consumables online.",
+  },
 };
 
 async function getSiteSettings() {
@@ -45,12 +85,38 @@ async function getSiteSettings() {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const settings = await getSiteSettings();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: settings.companyName,
+    url: SITE_URL,
+    description:
+      "Advanced garment manufacturing solutions: turnkey factory setups, sewing machine spares and garment manufacturing consumables online.",
+    logo: settings.logoUrl ?? undefined,
+    telephone: settings.phones[0] || undefined,
+    email: settings.emails[0] || undefined,
+    address: settings.address
+      ? {
+          "@type": "PostalAddress",
+          streetAddress: settings.address,
+          addressCountry: "ZA",
+        }
+      : undefined,
+    sameAs: [settings.facebook, settings.instagram, settings.linkedin].filter(Boolean),
+  };
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
         <SiteSettingsProvider value={settings}>
           <Header />
           {children}

@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { Check, ImageIcon } from "lucide-react";
+import { Check, ImageIcon, Maximize2, X } from "lucide-react";
 
 export type SpecRow = { label: string; value: string };
 export type ItemGroup = { label: string; items: string[] };
@@ -47,13 +47,30 @@ export default function ProductCard({
   ];
 
   const [tab, setTab] = useState<TabKey>(tabs[0]?.key ?? "info");
+  const [zoomed, setZoomed] = useState(false);
+
+  // Close the zoomed image with the Escape key, and stop the page scrolling behind it
+  useEffect(() => {
+    if (!zoomed) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setZoomed(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [zoomed]);
 
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
   });
-  const imageScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.05, 1, 1.05]);
-  const imageY = useTransform(scrollYProgress, [0, 1], [-16, 16]);
+  // Gentler than before: the image no longer drifts or scales much, so it stays sharp
+  const imageScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.02, 1, 1.02]);
+  const imageY = useTransform(scrollYProgress, [0, 1], [-8, 8]);
 
   const activeGroup =
     tab.startsWith("group-") && groups
@@ -64,14 +81,16 @@ export default function ProductCard({
 
   return (
     <article ref={ref} className="relative">
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-16 sm:py-20">
+      {/* Wider container so the image column can be bigger */}
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-16 sm:py-20">
         <div
           className={`grid grid-cols-1 lg:grid-cols-12 gap-x-10 gap-y-10 items-center ${
             isReversed ? "lg:[direction:rtl]" : ""
           }`}
         >
+          {/* IMAGE: now 7 of 12 columns (was 5) */}
           <div
-            className={`lg:col-span-5 [direction:ltr] ${
+            className={`lg:col-span-7 [direction:ltr] ${
               isReversed ? "lg:order-2" : ""
             }`}
           >
@@ -83,12 +102,26 @@ export default function ProductCard({
               <div className="relative rounded-3xl bg-white border border-red-600/25 shadow-[0_0_24px_-4px_rgba(220,38,38,0.35),0_20px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden">
                 <div className="relative aspect-[4/3] overflow-hidden bg-white">
                   {imageSrc ? (
-                    <motion.img
-                      style={{ scale: imageScale, y: imageY }}
-                      src={imageSrc}
-                      alt={name}
-                      className="w-full h-full object-contain p-6"
-                    />
+                    <>
+                      <motion.img
+                        style={{ scale: imageScale, y: imageY }}
+                        src={imageSrc}
+                        alt={name}
+                        loading="lazy"
+                        decoding="async"
+                        onClick={() => setZoomed(true)}
+                        className="w-full h-full object-contain p-2 sm:p-3 cursor-zoom-in"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setZoomed(true)}
+                        aria-label={`View ${name} larger`}
+                        className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 hover:bg-black text-white text-[12px] font-medium px-3 py-1.5 backdrop-blur transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+                      >
+                        <Maximize2 size={13} strokeWidth={2} />
+                        Enlarge
+                      </button>
+                    </>
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-black/20">
                       <ImageIcon size={32} strokeWidth={1} />
@@ -108,7 +141,8 @@ export default function ProductCard({
             </div>
           </div>
 
-          <div className={`lg:col-span-7 [direction:ltr] ${isReversed ? "lg:order-1" : ""}`}>
+          {/* TEXT: now 5 of 12 columns (was 7) */}
+          <div className={`lg:col-span-5 [direction:ltr] ${isReversed ? "lg:order-1" : ""}`}>
             <h3 className="text-3xl sm:text-4xl font-semibold text-black leading-[1.1] tracking-tight mb-4">
               {name}
             </h3>
@@ -203,7 +237,8 @@ export default function ProductCard({
                         hidden: {},
                         show: { transition: { staggerChildren: 0.03 } },
                       }}
-                      className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                      // One column in the narrower text area; two columns on very wide screens
+                      className="grid grid-cols-1 xl:grid-cols-2 gap-3"
                     >
                       {activeGroup.items.map((item, i) => (
                         <motion.div
@@ -256,9 +291,42 @@ export default function ProductCard({
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 lg:px-10">
+      <div className="max-w-7xl mx-auto px-6 lg:px-10">
         <div className="border-t border-black/[0.06]" />
       </div>
+
+      {/* Full-screen zoom view */}
+      <AnimatePresence>
+        {zoomed && imageSrc ? (
+          <motion.div
+            key="zoom"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${name} image`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setZoomed(false)}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4 sm:p-8 cursor-zoom-out"
+          >
+            <button
+              type="button"
+              onClick={() => setZoomed(false)}
+              aria-label="Close image"
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <X size={20} />
+            </button>
+            <img
+              src={imageSrc}
+              alt={name}
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-full max-h-full object-contain rounded-lg bg-white cursor-default"
+            />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </article>
   );
 }

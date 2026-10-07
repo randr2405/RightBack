@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import Header from "@/components/Header";
 import { SiteSettingsProvider } from "@/components/SiteSettingsProvider";
 import { supabase } from "@/lib/supabase";
@@ -122,6 +123,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </SiteSettingsProvider>
       </body>
+      <GoogleAnalytics gaId="G-XXXXXXXXXX" />
     </html>
   );
 }

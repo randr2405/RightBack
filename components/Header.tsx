@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { sendGAEvent } from "@next/third-parties/google";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ArrowRight, Menu, X } from "lucide-react";
 import { useSiteSettings } from "@/components/SiteSettingsProvider";
@@ -48,7 +49,7 @@ const navItems = [
   { label: "Laser Machines", href: "/laser-machines" },
   {
     label: "Online Parts Store",
-    href: "https://acc.rightback.co.za:8443/ords/r/rbserp/streamline-retail-catalogue/rightback-catalogue-items ",
+    href: "https://acc.rightback.co.za:8443/ords/r/rbserp/streamline-retail-catalogue/rightback-catalogue-items",
     external: true,
   },
   { label: "Contact", href: "/contact" },
@@ -137,6 +138,9 @@ export default function Header() {
               ) : item.external ? (
                 <a
                   href={item.href}
+                  onClick={() =>
+                    sendGAEvent("event", "shop_click", { location: "desktop_nav" })
+                  }
                   className="relative text-sm font-medium text-black hover:text-red transition-colors py-2 px-3 rounded-full inline-block whitespace-nowrap"
                 >
                   {item.label}
@@ -303,7 +307,10 @@ export default function Header() {
                     ) : item.external ? (
                       <a
                         href={item.href}
-                        onClick={() => setMobileOpen(false)}
+                        onClick={() => {
+                          sendGAEvent("event", "shop_click", { location: "mobile_menu" });
+                          setMobileOpen(false);
+                        }}
                         className="block py-4 text-[15px] font-medium text-black"
                       >
                         {item.label}

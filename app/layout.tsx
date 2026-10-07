@@ -123,7 +123,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </SiteSettingsProvider>
       </body>
-      <GoogleAnalytics gaId="G-XXXXXXXXXX" />
+      <GoogleAnalytics gaId="G-8H3HDZP8HT" />
     </html>
   );
 }

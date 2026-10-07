@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { Check, ImageIcon, Maximize2, X } from "lucide-react";
 
@@ -49,7 +50,6 @@ export default function ProductCard({
   const [tab, setTab] = useState<TabKey>(tabs[0]?.key ?? "info");
   const [zoomed, setZoomed] = useState(false);
 
-  // Close the zoomed image with the Escape key, and stop the page scrolling behind it
   useEffect(() => {
     if (!zoomed) return;
     const onKey = (e: KeyboardEvent) => {
@@ -68,7 +68,6 @@ export default function ProductCard({
     target: ref,
     offset: ["start end", "end start"],
   });
-  // Gentler than before: the image no longer drifts or scales much, so it stays sharp
   const imageScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.02, 1, 1.02]);
   const imageY = useTransform(scrollYProgress, [0, 1], [-8, 8]);
 
@@ -81,14 +80,12 @@ export default function ProductCard({
 
   return (
     <article ref={ref} className="relative">
-      {/* Wider container so the image column can be bigger */}
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-16 sm:py-20">
         <div
           className={`grid grid-cols-1 lg:grid-cols-12 gap-x-10 gap-y-10 items-center ${
             isReversed ? "lg:[direction:rtl]" : ""
           }`}
         >
-          {/* IMAGE: now 7 of 12 columns (was 5) */}
           <div
             className={`lg:col-span-7 [direction:ltr] ${
               isReversed ? "lg:order-2" : ""
@@ -141,7 +138,6 @@ export default function ProductCard({
             </div>
           </div>
 
-          {/* TEXT: now 5 of 12 columns (was 7) */}
           <div className={`lg:col-span-5 [direction:ltr] ${isReversed ? "lg:order-1" : ""}`}>
             <h3 className="text-3xl sm:text-4xl font-semibold text-black leading-[1.1] tracking-tight mb-4">
               {name}
@@ -237,7 +233,6 @@ export default function ProductCard({
                         hidden: {},
                         show: { transition: { staggerChildren: 0.03 } },
                       }}
-                      // One column in the narrower text area; two columns on very wide screens
                       className="grid grid-cols-1 xl:grid-cols-2 gap-3"
                     >
                       {activeGroup.items.map((item, i) => (
@@ -295,38 +290,62 @@ export default function ProductCard({
         <div className="border-t border-black/[0.06]" />
       </div>
 
-      {/* Full-screen zoom view */}
-      <AnimatePresence>
-        {zoomed && imageSrc ? (
-          <motion.div
-            key="zoom"
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${name} image`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={() => setZoomed(false)}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4 sm:p-8 cursor-zoom-out"
-          >
-            <button
-              type="button"
-              onClick={() => setZoomed(false)}
-              aria-label="Close image"
-              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
-              <X size={20} />
-            </button>
-            <img
-              src={imageSrc}
-              alt={name}
-              onClick={(e) => e.stopPropagation()}
-              className="max-w-full max-h-full object-contain rounded-lg bg-white cursor-default"
-            />
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      {typeof document !== "undefined"
+        ? createPortal(
+            <AnimatePresence>
+              {zoomed && imageSrc ? (
+                <motion.div
+                  key="zoom"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={`${name} image`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setZoomed(false)}
+                  className="fixed inset-0 z-[1000] bg-black/95 cursor-zoom-out"
+                  style={{ height: "100dvh", width: "100vw" }}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setZoomed(false);
+                    }}
+                    aria-label="Close image"
+                    className="absolute z-10 w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 text-white flex items-center justify-center backdrop-blur focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    style={{
+                      top: "max(1rem, env(safe-area-inset-top))",
+                      right: "max(1rem, env(safe-area-inset-right))",
+                    }}
+                  >
+                    <X size={24} />
+                  </button>
+                  <div
+                    className="absolute inset-0 flex items-center justify-center"
+                    style={{
+                      paddingTop: "max(4.5rem, env(safe-area-inset-top))",
+                      paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+                      paddingLeft: "max(0.5rem, env(safe-area-inset-left))",
+                      paddingRight: "max(0.5rem, env(safe-area-inset-right))",
+                    }}
+                  >
+                    <img
+                      src={imageSrc}
+                      alt={name}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full h-full object-contain cursor-default select-none"
+                      style={{ touchAction: "pinch-zoom" }}
+                      draggable={false}
+                    />
+                  </div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>,
+            document.body
+          )
+        : null}
     </article>
   );
 }

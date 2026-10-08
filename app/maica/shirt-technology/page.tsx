@@ -581,30 +581,19 @@ export default function ShirtTechnologyPage() {
           style={reduced ? undefined : { y: bgY, scale: bgScale }}
           className="absolute inset-0"
         >
-          <Ferrofluid
-            colors={FLUID_COLORS}
-            speed={0.5}
-            scale={1.6}
-            turbulence={1}
-            fluidity={0.1}
-            rimWidth={0.2}
-            sharpness={2.5}
-            shimmer={1.5}
-            glow={2}
-            flowDirection="down"
-            opacity={1}
-            mouseInteraction
-            mouseStrength={1}
-            mouseRadius={0.35}
+                    <div
+            className="absolute inset-0 bg-cover bg-[position:15%_center] sm:bg-[position:center_80%]"
+            style={{ backgroundImage: "url('/hero/shirt-technology-hero.png')" }}
           />
+                    <div className="absolute inset-0 bg-black/70 sm:bg-black/60" />
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                "radial-gradient(60% 55% at 50% 40%, rgba(0,0,0,0.5), transparent 70%)",
+                "radial-gradient(60% 60% at 50% 45%, rgba(0,0,0,0.55), transparent 75%)",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-neutral-100 pointer-events-none" />
         </motion.div>
 
         <motion.div
@@ -617,7 +606,7 @@ export default function ShirtTechnologyPage() {
                   scale: heroContentScale,
                 }
           }
-          className="relative px-6 pt-28 pb-24 text-center pointer-events-none"
+                    className="relative px-6 pt-28 pb-32 sm:pb-44 text-center pointer-events-none"
         >
           <motion.div style={reduced ? undefined : { y: eyebrowY }}>
             <motion.p
@@ -649,7 +638,8 @@ export default function ShirtTechnologyPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.3 }}
-              className="mt-6 max-w-2xl mx-auto text-white/70 text-lg sm:text-xl"
+                            className="mt-6 max-w-2xl mx-auto text-white/90 text-lg sm:text-xl"
+              style={{ textShadow: "0 1px 12px rgba(0,0,0,0.8)" }}
             >
               Patented automated systems for shirt manufacturing — from sleeve
               plackets and collars to buttonholes and finishing.
@@ -676,7 +666,7 @@ export default function ShirtTechnologyPage() {
                   <div className="text-4xl sm:text-5xl font-bold text-white">
                     {stat.value}
                   </div>
-                  <div className="mt-1 text-sm uppercase tracking-wider text-white/50">
+                                   <div className="mt-1 text-sm uppercase tracking-wider text-white/80">
                     {stat.label}
                   </div>
                 </motion.div>

@@ -572,27 +572,11 @@ export default function LockstitchPage() {
           style={reduced ? undefined : { y: bgY, scale: bgScale }}
           className="absolute inset-0"
         >
-          <GradientBlinds
-            gradientColors={BLIND_COLORS}
-            angle={20}
-            noise={0.5}
-            blindCount={16}
-            blindMinWidth={60}
-            spotlightRadius={0.5}
-            spotlightSoftness={1}
-            spotlightOpacity={1}
-            mouseDampening={0.15}
-            distortAmount={0}
-            shineDirection="left"
-            mixBlendMode="lighten"
+                   <div
+            className="absolute inset-0 bg-cover bg-[position:18%_center] sm:bg-center"
+            style={{ backgroundImage: "url('/hero/lockstitch-hero.png')" }}
           />
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(60% 55% at 50% 40%, rgba(0,0,0,0.5), transparent 70%)",
-            }}
-          />
+          <div className="absolute inset-0 bg-black/50 sm:bg-black/30" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
         </motion.div>
 

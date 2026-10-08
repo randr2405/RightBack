@@ -1690,13 +1690,17 @@ export default function Home() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden bg-neutral-100">
       <section ref={heroRef} className="relative bg-[#1A1A1A] text-white text-center px-6 py-40 overflow-hidden">
-        <div className="absolute inset-0 bg-[#1A1A1A]">
-          <Aurora colorStops={["#7F1D1D", "#DC2626", "#EF4444"]} blend={0.6} amplitude={1.2} speed={1.2} />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-neutral-100 pointer-events-none" />
+                <div className="absolute inset-0 bg-[#1A1A1A]">
+          <div
+            className="absolute inset-0 bg-cover bg-[position:25%_center] md:bg-center"
+            style={{ backgroundImage: "url('/hero/home-hero.png')" }}
+          />
+                   <div className="absolute inset-0 bg-black/55" />
           <div
             className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(60% 45% at 50% 42%, rgba(0,0,0,0.32), transparent 70%)" }}
+            style={{ background: "radial-gradient(70% 60% at 50% 45%, rgba(0,0,0,0.6), transparent 75%)" }}
           />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
         </div>
 
         <motion.div style={{ opacity: heroOpacity }} className="relative">
@@ -1722,7 +1726,8 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
-            className="mt-6 text-lg sm:text-2xl text-white/70"
+                        className="mt-6 text-lg sm:text-2xl text-white"
+            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.9)" }}
           >
             Precision machinery. Smarter production. Reliable performance.
           </motion.p>
@@ -1748,7 +1753,7 @@ export default function Home() {
         whileInView="show"
         viewport={{ once: true, amount: 0.4 }}
         variants={fadeUp}
-        className="bg-neutral-100 text-black text-center px-6 pb-24"
+                className="bg-neutral-100 text-black text-center px-6 py-20 sm:py-28"
       >
         <p className="max-w-3xl mx-auto text-black/70 text-lg sm:text-xl">
           Rightback supplies world-class apparel manufacturing technology to factories across Southern Africa.

@@ -574,36 +574,12 @@ export default function EngineeredWorkstationsPage() {
           style={reduced ? undefined : { y: bgY, scale: bgScale }}
           className="absolute inset-0"
         >
-          <GradientWaves
-            horizonColor="#7F1D1D"
-            waveColor="#DC2626"
-            crestColor="#FCA5A5"
-            speed={0.4}
-            amplitude={2.5}
-            waveScale={0.6}
-            waveRatio={0.9}
-            swell={35}
-            turbulence={20}
-            tilt={1.11}
-            zoom={1}
-            height={5.5}
-            fogDepth={15}
-            detail="medium"
-            brightness={1}
-            opacity={1}
-            mouseInteraction
-            parallaxStrength={0.5}
-            grain
-            grainIntensity={0.05}
+                       <div
+            className="absolute inset-0 bg-cover bg-[position:82%_center] sm:bg-[position:center_80%]"
+            style={{ backgroundImage: "url('/hero/engineered-workstations-hero.png')" }}
           />
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(60% 55% at 50% 40%, rgba(0,0,0,0.5), transparent 70%)",
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
+          <div className="absolute inset-0 bg-black/55 sm:bg-black/35" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-neutral-100 pointer-events-none" />
         </motion.div>
 
         <motion.div
@@ -616,7 +592,7 @@ export default function EngineeredWorkstationsPage() {
                   scale: heroContentScale,
                 }
           }
-          className="relative px-6 pt-28 pb-24 text-center pointer-events-none"
+                   className="relative px-6 pt-28 pb-44 text-center pointer-events-none"
         >
           <motion.div style={reduced ? undefined : { y: eyebrowY }}>
             <motion.p

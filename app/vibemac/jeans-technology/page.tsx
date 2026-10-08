@@ -507,27 +507,12 @@ export default function JeansTechnologyPage() {
           style={reduced ? undefined : { y: bgY, scale: bgScale }}
           className="absolute inset-0"
         >
-          <div style={{ width: "100%", height: "100%", position: "relative" }}>
-            <Dither
-              waveColor={WAVE_COLOR}
-              disableAnimation={false}
-              enableMouseInteraction
-              mouseRadius={0.3}
-              colorNum={4}
-              waveAmplitude={0.3}
-              waveFrequency={3}
-              waveSpeed={0.05}
-              backgroundColor={BG_COLOR}
-            />
-          </div>
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(60% 55% at 50% 40%, rgba(0,0,0,0.5), transparent 70%)",
-            }}
+                 <div
+            className="absolute inset-0 bg-cover bg-[position:85%_center] sm:bg-[position:center_80%]"
+            style={{ backgroundImage: "url('/hero/jeans-technology-hero.png')" }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
+          <div className="absolute inset-0 bg-black/55 sm:bg-black/30" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-neutral-100 pointer-events-none" />
         </motion.div>
 
         <motion.div
@@ -540,7 +525,7 @@ export default function JeansTechnologyPage() {
                   scale: heroContentScale,
                 }
           }
-          className="relative px-6 pt-28 pb-24 text-center pointer-events-none"
+                   className="relative px-6 pt-28 pb-32 sm:pb-44 text-center pointer-events-none"
         >
           <motion.div style={reduced ? undefined : { y: eyebrowY }}>
             <motion.p

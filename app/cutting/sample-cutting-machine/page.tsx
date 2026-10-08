@@ -491,29 +491,25 @@ export default function SampleCuttingMachinePage() {
         ref={heroRef}
         className="relative bg-[#0A0A0A] text-white overflow-hidden"
       >
-        <div className="absolute inset-0">
-          <DotField
-            dotRadius={1.5}
-            dotSpacing={14}
-            bulgeStrength={67}
-            glowRadius={160}
-            sparkle={false}
-            waveAmplitude={0}
-            cursorRadius={500}
-            cursorForce={0.1}
-            bulgeOnly
-            gradientFrom="#DC2626"
-            gradientTo="#FCA5A5"
-            glowColor="#1A0505"
+                        <div className="absolute inset-0">
+          <div
+            className="absolute inset-0 bg-no-repeat bg-right bg-[length:auto_100%] opacity-45 sm:opacity-60"
+            style={{
+              backgroundImage: "url('/hero/sample-cutting-hero.png')",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent 25%, black 75%)",
+              maskImage: "linear-gradient(to right, transparent 25%, black 75%)",
+            }}
           />
+          <div className="absolute inset-0 bg-black/30" />
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                "radial-gradient(60% 55% at 50% 40%, rgba(0,0,0,0.5), transparent 70%)",
+                "radial-gradient(50% 60% at 50% 45%, rgba(0,0,0,0.6), transparent 80%)",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-neutral-100 pointer-events-none" />
         </div>
 
         <motion.div
@@ -526,7 +522,7 @@ export default function SampleCuttingMachinePage() {
                   scale: heroContentScale,
                 }
           }
-          className="relative px-6 pt-28 pb-24 text-center pointer-events-none"
+                    className="relative px-6 pt-28 pb-32 sm:pb-48 text-center pointer-events-none"
         >
           <motion.div style={reduced ? undefined : { y: eyebrowY }}>
             <motion.p
@@ -558,7 +554,8 @@ export default function SampleCuttingMachinePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.3 }}
-              className="mt-6 max-w-2xl mx-auto text-white/70 text-lg sm:text-xl"
+                            className="mt-6 max-w-2xl mx-auto text-white/90 text-lg sm:text-xl"
+              style={{ textShadow: "0 1px 12px rgba(0,0,0,0.8)" }}
             >
               Precision sample cutting for garments, patterns, and rigid plate
               materials — one machine, multiple cutting modes.
@@ -585,7 +582,7 @@ export default function SampleCuttingMachinePage() {
                   <div className="text-4xl sm:text-5xl font-bold text-white">
                     {stat.value}
                   </div>
-                  <div className="mt-1 text-sm uppercase tracking-wider text-white/50">
+                                   <div className="mt-1 text-sm uppercase tracking-wider text-white/80">
                     {stat.label}
                   </div>
                 </motion.div>

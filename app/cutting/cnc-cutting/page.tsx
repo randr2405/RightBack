@@ -407,22 +407,19 @@ export default function CNCCuttingPage() {
           style={reduced ? undefined : { y: bgY, scale: bgScale }}
           className="absolute inset-0"
         >
-          <div style={{ width: "100%", height: "100%", position: "relative" }}>
-            <Aurora
-              colorStops={["#7F1D1D", "#DC2626", "#FCA5A5"]}
-              blend={0.5}
-              amplitude={1.0}
-              speed={1}
-            />
-          </div>
+                    <div
+            className="absolute inset-0 bg-cover bg-[position:15%_center] sm:bg-[position:center_80%]"
+            style={{ backgroundImage: "url('/hero/cnc-cutting-hero.png')" }}
+          />
+          <div className="absolute inset-0 bg-black/70 sm:bg-black/55" />
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                "radial-gradient(60% 55% at 50% 40%, rgba(0,0,0,0.5), transparent 70%)",
+                "radial-gradient(60% 60% at 50% 45%, rgba(0,0,0,0.55), transparent 75%)",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-neutral-100 pointer-events-none" />
         </motion.div>
 
         <motion.div
@@ -435,7 +432,7 @@ export default function CNCCuttingPage() {
                   scale: heroContentScale,
                 }
           }
-          className="relative px-6 pt-28 pb-24 text-center"
+                   className="relative px-6 pt-28 pb-32 sm:pb-44 text-center"
         >
           <motion.div style={reduced ? undefined : { y: eyebrowY }}>
             <motion.p
@@ -467,7 +464,8 @@ export default function CNCCuttingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.3 }}
-              className="mt-6 max-w-2xl mx-auto text-white/70 text-lg sm:text-xl"
+                            className="mt-6 max-w-2xl mx-auto text-white/90 text-lg sm:text-xl"
+              style={{ textShadow: "0 1px 12px rgba(0,0,0,0.8)" }}
             >
               High-precision, multi-functional CNC cutting technology built for
               speed, accuracy, and mass production across industries.
@@ -494,7 +492,7 @@ export default function CNCCuttingPage() {
                   <div className="text-4xl sm:text-5xl font-bold text-white">
                     {stat.value}
                   </div>
-                  <div className="mt-1 text-sm uppercase tracking-wider text-white/50">
+                                    <div className="mt-1 text-sm uppercase tracking-wider text-white/80">
                     {stat.label}
                   </div>
                 </motion.div>

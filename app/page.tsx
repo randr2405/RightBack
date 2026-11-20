@@ -9,6 +9,7 @@ import Lenis from "lenis";
 import Footer from "@/components/Footer";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import HomeBanners from "@/components/HomeBanners";
+import WhatWeDoCard from "@/components/WhatWeDoCard";
 
 const AURORA_VERT = `#version 300 es
 in vec2 position;
@@ -1690,17 +1691,17 @@ export default function Home() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden bg-neutral-100">
       <section ref={heroRef} className="relative bg-[#1A1A1A] text-white text-center px-6 py-40 overflow-hidden">
-                <div className="absolute inset-0 bg-[#1A1A1A]">
+        <div className="absolute inset-0 bg-[#1A1A1A]">
           <div
             className="absolute inset-0 bg-cover bg-[position:25%_center] md:bg-center"
             style={{ backgroundImage: "url('/hero/home-hero.png')" }}
           />
-                   <div className="absolute inset-0 bg-black/55" />
+          <div className="absolute inset-0 bg-black/55" />
           <div
             className="absolute inset-0 pointer-events-none"
             style={{ background: "radial-gradient(70% 60% at 50% 45%, rgba(0,0,0,0.6), transparent 75%)" }}
           />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-neutral-100 pointer-events-none" />
         </div>
 
         <motion.div style={{ opacity: heroOpacity }} className="relative">
@@ -1726,7 +1727,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
-                        className="mt-6 text-lg sm:text-2xl text-white"
+            className="mt-6 text-lg sm:text-2xl text-white"
             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.9)" }}
           >
             Precision machinery. Smarter production. Reliable performance.
@@ -1753,7 +1754,7 @@ export default function Home() {
         whileInView="show"
         viewport={{ once: true, amount: 0.4 }}
         variants={fadeUp}
-                className="bg-neutral-100 text-black text-center px-6 py-20 sm:py-28"
+        className="bg-neutral-100 text-black text-center px-6 py-20 sm:py-28"
       >
         <p className="max-w-3xl mx-auto text-black/70 text-lg sm:text-xl">
           Rightback supplies world-class apparel manufacturing technology to factories across Southern Africa.
@@ -1814,21 +1815,12 @@ export default function Home() {
         <ScrollStack itemDistance={64} itemScale={0.03} itemStackDistance={18} baseScale={0.92} blurAmount={0}>
           {whatWeDo.map((item) => (
             <ScrollStackItem key={item.title}>
-              <div className="bg-[#1A1A1A] rounded-3xl overflow-hidden h-full flex flex-col md:flex-row shadow-2xl max-h-[420px] md:max-h-[380px]">
-                <div className="md:w-1/2 h-48 md:h-auto bg-black/30 flex items-center justify-center">
-                  <img src={item.image} alt={item.title} className="w-full h-full object-contain p-6" />
-                </div>
-                <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center text-white">
-                  <h3 className="text-2xl md:text-3xl font-bold mb-4">{item.title}</h3>
-                  <p className="text-white/70 text-base md:text-lg">{item.description}</p>
-                  <Link
-                    href={item.href}
-                    className="mt-6 inline-block text-red text-sm font-medium w-fit hover:underline"
-                  >
-                    Learn more →
-                  </Link>
-                </div>
-              </div>
+              <WhatWeDoCard
+                title={item.title}
+                description={item.description}
+                image={item.image}
+                href={item.href}
+              />
             </ScrollStackItem>
           ))}
         </ScrollStack>

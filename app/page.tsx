@@ -1737,7 +1737,7 @@ export default function Home() {
             transition={{ duration: 0.9, delay: 0.4, ease: "easeOut" }}
           >
             <Link
-              href="/sewing/engineered-workstations"
+              href="/solutions"
               className="inline-block mt-10 px-10 py-4 border border-red text-white rounded-full text-lg hover:bg-red hover:text-white hover:scale-105 transition-all duration-300"
             >
               Explore our solutions

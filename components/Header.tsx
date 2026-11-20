@@ -6,54 +6,7 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ArrowRight, Menu, X } from "lucide-react";
 import { useSiteSettings } from "@/components/SiteSettingsProvider";
-
-const navItems = [
-  { label: "Home", href: "/" },
-  {
-    label: "Sewing",
-    href: "/sewing",
-    children: [
-      { label: "Lockstitch", href: "/sewing/lockstitch", desc: "High-speed precision stitching" },
-      { label: "Engineered Workstations", href: "/sewing/engineered-workstations", desc: "Ergonomic, production-ready setups" },
-    ],
-  },
-  {
-    label: "Vibemac",
-    href: "/vibemac",
-    children: [{ label: "Jeans Technology", href: "/vibemac/jeans-technology", desc: "Specialist denim machinery" }],
-  },
-  {
-    label: "Maica",
-    href: "/maica",
-    children: [{ label: "Shirt Technology", href: "/maica/shirt-technology", desc: "Precision shirt manufacturing" }],
-  },
-  {
-    label: "Cutting",
-    href: "/cutting",
-    children: [
-      { label: "CNC Cutting", href: "/cutting/cnc-cutting", desc: "Automated precision cutting" },
-      { label: "Sample Cutting Machine", href: "/cutting/sample-cutting-machine", desc: "Fast, accurate sampling" },
-      { label: "Spreading Machine", href: "/cutting/spreading-machine", desc: "Efficient fabric spreading" },
-    ],
-  },
-  {
-    label: "Print",
-    href: "/print",
-    children: [
-      { label: "Pattern Marker Plotters", href: "/print/pattern-marker-plotters", desc: "High-precision plotting" },
-      { label: "DTF Printers", href: "/print/dtf-printers", desc: "Direct-to-film & UV DTF" },
-    ],
-  },
-  { label: "Laundry", href: "/laundry" },
-  { label: "CAD Pattern Design", href: "/cad-pattern-design" },
-  { label: "Laser Machines", href: "/laser-machines" },
-  {
-    label: "Online Parts Store",
-    href: "https://acc.rightback.co.za:8443/ords/r/rbserp/streamline-retail-catalogue/rightback-catalogue-items",
-    external: true,
-  },
-  { label: "Contact", href: "/contact" },
-];
+import { navItems } from "@/lib/catalogue";
 
 export default function Header() {
   const { companyName, logoUrl } = useSiteSettings();

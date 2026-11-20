@@ -4,6 +4,7 @@ const SITE_URL = "https://www.rightback.co.za";
 
 const pages = [
   "",
+  "/solutions",
   "/sewing",
   "/vibemac",
   "/maica",

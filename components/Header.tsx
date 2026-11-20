@@ -19,7 +19,7 @@ export default function Header() {
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+      if (navRef.current && !e.composedPath().includes(navRef.current)) {
         setOpenMenu(null);
       }
     }
